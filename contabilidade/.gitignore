@@ -1,0 +1,3 @@
+# Segredos e ficheiros próprios do servidor — nunca vão para o Git
+config.local.php
+erros_proxy.log
