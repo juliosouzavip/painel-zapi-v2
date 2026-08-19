@@ -68,7 +68,50 @@ aparecer na própria linha, e a etiqueta diz "Sem fatura" em vez de "Ign.".
 Corrigido pelo caminho: o formulário de lançar fatura escolhia o **mês e o
 trimestre errados** (lia 10/06/2026 como 6 de Outubro, à americana).
 
-## 3. Chave da API e senhas
+## 3. Marcas que saltavam de um movimento para outro
+
+**O que corria mal.** Ao reimportar um extrato, os movimentos novos eram
+emparelhados com os já gravados por **conta + data + valor + tipo** — sem a
+descrição. Para desempatar entre linhas do mesmo dia e do mesmo valor,
+comparavam-se os **primeiros 25 caracteres** da descrição. Nas linhas do
+género `DÉBITO DIRETO-PAYPAL EUROPE S.-5FZJ2254…` esses 25 caracteres são
+iguais em todas: o desempate não desempatava nada e o estado ia parar à
+primeira linha da lista.
+
+Consequência: uma marca de "sem fatura" — ou uma **fatura já ligada** — podia
+saltar para um movimento diferente, do mesmo dia e do mesmo valor, que
+ninguém tinha marcado. Reproduzido em teste: dois débitos de €9,00 a 09/06,
+o do Spotify marcado pela equipa e o da Meta pendente; depois de reimportar,
+a marca estava na Meta e o Spotify tinha voltado a pendente.
+
+**Regra nova.** Uma linha que já existe **nunca é reescrita**. Por cada grupo
+conta+data+valor+tipo conta-se quantas linhas já existem e quantas vêm no
+extrato, e só se criam linhas para as que estão a mais. Como nada é
+reatribuído, não há estado nenhum para herdar — as linhas antigas ficam
+exactamente como estavam, com as tuas marcas e as tuas faturas.
+
+O emparelhamento passou também a comparar as **palavras todas** da descrição
+(sem acentos e sem pontuação), em vez dos 25 primeiros caracteres. Serve
+apenas para contar quantas linhas são novas e para preencher uma categoria
+em falta — nunca para mover estados.
+
+Corrigido pelo caminho: um movimento genuinamente novo num grupo que já
+tinha linhas recebia um id repetido (`_1`) e acabava descartado pela rede de
+segurança contra ids duplicados. Agora continua a sequência (`_3`, `_4`…).
+
+## 4. Nada é marcado automaticamente
+
+A importação deixou de conciliar sozinha. Antes, um movimento novo cujo
+valor batesse certo com uma fatura era logo marcado como **conciliado**, sem
+ninguém decidir. Agora **todos os movimentos importados entram como
+pendentes** e a sugestão aparece na Conciliação (com a estrela ⭐ e o botão
+*Ligar*), para seres tu a confirmar. A mensagem no fim da importação diz
+quantos têm fatura sugerida.
+
+O botão **"Re-tentar conciliação"** continua a existir para quem quiser a
+ligação em massa — mas só quando é clicado.
+
+## 5. Chave da API e senhas
 
 A chave da Anthropic e as senhas estavam escritas dentro do `upload.php`.
 Passaram para um ficheiro à parte, que não vai para o Git:

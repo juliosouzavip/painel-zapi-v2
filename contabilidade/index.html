@@ -2629,6 +2629,22 @@ function idEstavel(m, contaTag){
   return base + '_' + _idsUsados[base];
 }
 
+// Semelhança entre duas descrições, de 0 (nada a ver) a 1 (iguais).
+// Compara as PALAVRAS todas — não os primeiros 25 caracteres, que nas
+// linhas "DÉBITO DIRETO-PAYPAL EUROPE S.-…" são iguais em todas elas.
+function _palavrasDesc(t){
+  const limpo=String(t||'').toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')   // tira acentos
+    .replace(/[^a-z0-9]+/g,' ').trim();
+  return new Set(limpo.split(' ').filter(p=>p.length>=3));
+}
+function semelhancaDesc(a,b){
+  const A=_palavrasDesc(a), B=_palavrasDesc(b);
+  if(!A.size||!B.size) return 0;
+  let comuns=0; A.forEach(p=>{ if(B.has(p)) comuns++; });
+  return comuns/Math.max(A.size,B.size);
+}
+
 function tratarMovimentos(movs){
   // Contador dos IDs zerado a cada importação: importar o mesmo extrato
   // duas vezes tem de dar exactamente os mesmos IDs.
@@ -2653,9 +2669,8 @@ function tratarMovimentos(movs){
   // 3. A chave não incluía a conta, por isso um movimento da conta
   //    principal podia casar com um do cartão.
   //
-  // Agora: emparelhamento um-para-um. Cada linha existente é consumida no
-  // máximo uma vez. A chave é conta+data+valor+tipo, que não depende da
-  // descrição (a descrição vem da IA e muda de análise para análise).
+  // A chave é conta+data+valor+tipo. Não inclui a descrição de propósito:
+  // a descrição vem da IA e muda de análise para análise.
   const bolsa = new Map();
   const chaveDe = m => chaveNatural(m, (m.conta||contaTag));
   movimentos.forEach(m=>{
@@ -2664,46 +2679,86 @@ function tratarMovimentos(movs){
     bolsa.get(k).push(m);
   });
 
-  const usados = new Set();
-  const normDesc = t => String(t||'').toLowerCase().replace(/[^a-z0-9]/g,'').substring(0,25);
+  // ── EMPARELHAMENTO REESCRITO 19/08/2026 ────────────────────────────
+  // O QUE CORRIA MAL: a chave de emparelhamento não inclui a descrição, e o
+  // desempate entre linhas do mesmo dia e do mesmo valor só comparava os
+  // PRIMEIROS 25 CARACTERES. Nas linhas do género
+  // "DÉBITO DIRETO-PAYPAL EUROPE S.-5FZJ2254…" esses 25 caracteres são
+  // iguais em todas — o desempate não desempatava nada e o estado ia parar
+  // à primeira linha da lista. Ao reimportar o extrato, uma marca de "sem
+  // fatura" (ou uma fatura já ligada) podia saltar para OUTRO movimento.
+  //
+  // REGRA NOVA, e mais simples de garantir: uma linha que já existe NUNCA é
+  // reescrita. Por cada grupo conta+data+valor+tipo conta-se quantas linhas
+  // já existem e quantas vêm no extrato; só se criam linhas para as que
+  // estão a mais. Como nada é reatribuído, não há estado nenhum para
+  // herdar — as linhas antigas ficam exactamente como estavam.
+  //
+  // E NADA É MARCADO SOZINHO: os movimentos novos entram sempre como
+  // PENDENTES. A conciliação automática deixou de correr na importação; as
+  // sugestões continuam a aparecer na Conciliação e no botão "Re-tentar
+  // conciliação", para seres tu a decidir.
 
-  let novos=0,preservados=0,totalNovos=[];
-  movs.forEach(m=>{
-    const k = chaveNatural(m, contaTag);
-    const candidatos = (bolsa.get(k)||[]).filter(x=>!usados.has(x));
-
-    // Entre os candidatos, prefere o de descrição igual; senão o primeiro.
-    let ex = null;
-    if(candidatos.length){
-      const d = normDesc(m.descricao);
-      ex = candidatos.find(x=>normDesc(x.descricao)===d) || candidatos[0];
-      usados.add(ex);
-    }
-
-    if(ex){
-      // Já existe: mantém o id e a conciliação que já lá estava
-      if(ex.status==='conciliado'||ex.status==='ignorado'){
-        totalNovos.push({...m,id:ex.id,status:ex.status,fat_id:ex.fat_id,conta:ex.conta||contaTag,
-                         categoria:ex.categoria||m.categoria,entidade:ex.entidade||m.entidade,
-                         obs:ex.obs||m.obs, notas_sem_fatura:ex.notas_sem_fatura});
-        preservados++;
-      } else {
-        totalNovos.push({...m,id:ex.id,status:'pendente',fat_id:null,conta:ex.conta||contaTag,
-                         categoria:ex.categoria||m.categoria,
-                         obs:ex.obs||m.obs, notas_sem_fatura:ex.notas_sem_fatura});
-      }
-    } else {
-      const novo={...m,id:idEstavel(m,contaTag),fat_id:null,status:'pendente',conta:contaTag};
-      const f=tentarAssociar(novo);
-      if(f){novo.fat_id=f.id;novo.status='conciliado';}
-      totalNovos.push(novo);
-      novos++;
+  // Semeia o contador de IDs com os que já existem: um movimento novo num
+  // grupo que já tem linhas passa a receber _3, _4… em vez de repetir o _1.
+  movimentos.forEach(m=>{
+    const mm = String(m.id||'').match(/^(.*)_(\d+)$/);
+    if(mm){
+      const base = mm[1], n = parseInt(mm[2],10)||0;
+      if(!_idsUsados[base] || _idsUsados[base] < n) _idsUsados[base] = n;
     }
   });
 
-  // Tudo o que não foi emparelhado continua na lista (outros meses,
-  // outra conta, ou movimentos que já não constam do extrato novo).
-  movimentos.forEach(m=>{ if(!usados.has(m)) totalNovos.push(m); });
+  // Agrupa também o que vem do extrato, pela mesma chave
+  const entrada = new Map();
+  movs.forEach(m=>{
+    const k = chaveNatural(m, contaTag);
+    if(!entrada.has(k)) entrada.set(k, []);
+    entrada.get(k).push(m);
+  });
+
+  let novos=0, preservados=0;
+  const criados=[];
+
+  entrada.forEach((doExtrato, k)=>{
+    const existentes = bolsa.get(k) || [];
+
+    // Emparelha do par mais parecido para o menos parecido. Este
+    // emparelhamento serve só para saber QUANTAS linhas são novas e para
+    // preencher categorias em falta — nunca move estados entre linhas.
+    const pares=[];
+    doExtrato.forEach((m,i)=>existentes.forEach((ex,j)=>{
+      pares.push({i, j, s: semelhancaDesc(m.descricao, ex.descricao)});
+    }));
+    pares.sort((a,b)=>b.s-a.s);
+
+    const usadoIn=new Set(), usadoEx=new Set();
+    pares.forEach(p=>{
+      if(usadoIn.has(p.i)||usadoEx.has(p.j)) return;
+      usadoIn.add(p.i); usadoEx.add(p.j);
+      // Só quando as descrições são mesmo parecidas é que se aproveita a
+      // categoria do extrato — e apenas se a linha antiga não tiver nenhuma.
+      const ex=existentes[p.j], m=doExtrato[p.i];
+      if(p.s>=0.5){
+        if(!ex.categoria && m.categoria) ex.categoria = m.categoria;
+        if(!ex.entidade_provavel && m.entidade_provavel) ex.entidade_provavel = m.entidade_provavel;
+      }
+      preservados++;
+    });
+
+    // O que sobra do extrato são movimentos que ainda não estavam na lista
+    doExtrato.forEach((m,i)=>{
+      if(usadoIn.has(i)) return;
+      criados.push({...m, id:idEstavel(m,contaTag), fat_id:null, status:'pendente', conta:contaTag});
+      novos++;
+    });
+  });
+
+  // Quantos dos novos têm uma fatura à espera — é só informação, não liga nada
+  let comSugestao=0;
+  criados.forEach(n=>{ try{ if(tentarAssociar(n)) comSugestao++; }catch(e){} });
+
+  let totalNovos = movimentos.concat(criados);
 
   // As notas vivem à parte — voltar a colá-las nos movimentos
   totalNovos.forEach(m=>{ const t=OBS_MOV[String(m.id)]; if(t) m.obs=t; });
@@ -2724,7 +2779,13 @@ function tratarMovimentos(movs){
   guardarMovimentosGoogle();
   renderListaExtrato();
   const descConta=contaTag==='cartao'?'💳 Cartão':'📊 Conta Principal';
-  toast(novos>0?(novos+' movimento(s) novo(s) ['+descConta+'] adicionados. '+preservados+' conciliações preservadas.'):'Extrato já actualizado — nenhum movimento novo.');
+  if(novos>0){
+    toast(novos+' movimento(s) novo(s) ['+descConta+'] — todos pendentes, à tua espera. '+
+          preservados+' já existiam e ficaram como estavam.'+
+          (comSugestao?' '+comSugestao+' têm fatura sugerida na Conciliação.':''), 7000);
+  } else {
+    toast('Extrato já actualizado — nenhum movimento novo. '+preservados+' linhas mantidas como estavam.');
+  }
 }
 
 // Re-tenta conciliação automática em todos os pendentes
