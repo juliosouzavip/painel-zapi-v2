@@ -3768,17 +3768,17 @@ function trocarFaturaExtrato(movId){
     const exacta = ehExacta(f);
     const mvLig  = jaLigada ? movPorFat[f.id] : null;
     const aviso  = mvLig
-      ? `<div style="font-size:10px;color:var(--amber);margin-top:2px"><i class="fa fa-exclamation-triangle"></i> Já ligada a: ${(mvLig.data||'')+(mvLig.descricao?' · '+(mvLig.descricao.substring(0,40)):'')}</div>`
+      ? `<div style="font-size:10px;color:var(--blue);margin-top:2px"><i class="fa fa-info-circle"></i> Também ligada a: ${(mvLig.data||'')+(mvLig.descricao?' · '+(mvLig.descricao.substring(0,40)):'')}</div>`
       : '';
-    const bordaCor = jaLigada ? 'var(--amber-bg)' : (exacta ? '#93c5fd' : 'var(--border)');
-    const bgCor    = jaLigada ? '#fffbeb' : (exacta ? '#eff6ff' : '');
+    const bordaCor = jaLigada ? '#bfdbfe' : (exacta ? '#93c5fd' : 'var(--border)');
+    const bgCor    = jaLigada ? '#eff6ff' : (exacta ? '#dbeafe' : '');
     return `<div class="itemTrocar" data-exacta="${exacta?1:0}" data-ligada="${jaLigada?1:0}"
       data-txt="${((f.entidade||'')+' '+(f.numero||'')+' '+(f.mes||'')+' '+fmt(f.total)).toLowerCase().replace(/"/g,'')}"
       style="padding:10px 12px;border-radius:8px;display:flex;justify-content:space-between;align-items:center;gap:8px;border:1px solid ${bordaCor};background:${bgCor};margin-bottom:5px;opacity:${jaLigada?'.75':'1'}">
       <div style="flex:1;min-width:0">
         <div style="font-size:13px;font-weight:500">${f.entidade||'—'} ${f.numero?'· '+f.numero:''}
           ${exacta?'<span style="font-size:9px;background:#1d4ed8;color:#fff;padding:1px 5px;border-radius:8px;margin-left:4px">VALOR EXACTO</span>':''}
-          ${jaLigada?'<span style="font-size:9px;background:var(--amber);color:#fff;padding:1px 5px;border-radius:8px;margin-left:4px">JÁ LIGADA</span>':''}
+          ${jaLigada?'<span style="font-size:9px;background:var(--blue);color:#fff;padding:1px 5px;border-radius:8px;margin-left:4px">PARTILHADA</span>':''}
         </div>
         <div style="font-size:11px;color:var(--muted)">${fmtData(f.data)} · ${f.mes||'—'} · ${f.geo||'—'} ${f.servico?'· '+String(f.servico).substring(0,40):''}</div>
         ${aviso}
@@ -3788,17 +3788,17 @@ function trocarFaturaExtrato(movId){
         style="background:#fff;color:${f.pdfUrl?'var(--red)':'var(--blue)'};border:1px solid ${f.pdfUrl?'var(--red)':'var(--blue)'};border-radius:6px;padding:5px 10px;font-size:11px;cursor:pointer;white-space:nowrap;font-family:'Montserrat',sans-serif">
         <i class="fa ${f.pdfUrl?'fa-file-pdf':'fa-file-invoice'}"></i> Ver
       </button>
-      <button onclick="event.stopPropagation();confirmarTroca('${movId}','${f.id}')" title="${jaLigada?'Transferir ligação para este movimento':'Ligar esta fatura ao movimento'}"
-        style="background:${jaLigada?'var(--amber)':'var(--navy)'};color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:11px;cursor:pointer;white-space:nowrap;font-family:'Montserrat',sans-serif">
-        <i class="fa ${jaLigada?'fa-exchange-alt':'fa-link'}"></i> ${jaLigada?'Transferir':'Ligar'}
+      <button onclick="event.stopPropagation();confirmarTroca('${movId}','${f.id}')" title="${jaLigada?'Ligar também este movimento a esta fatura (pagamento parcial)':'Ligar esta fatura ao movimento'}"
+        style="background:var(--navy);color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:11px;cursor:pointer;white-space:nowrap;font-family:'Montserrat',sans-serif">
+        <i class="fa fa-link"></i> Ligar
       </button>
     </div>`;
   };
 
   const separador = ligadas.length ? `
     <div class="itemTrocar" data-txt="" data-separador="1"
-      style="padding:6px 8px;font-size:11px;color:var(--amber);font-weight:600;margin:6px 0 4px;border-top:1px solid var(--amber-bg)">
-      <i class="fa fa-exclamation-triangle"></i> Já ligadas a outro movimento — ligar aqui remove a ligação anterior
+      style="padding:6px 8px;font-size:11px;color:var(--blue);font-weight:600;margin:6px 0 4px;border-top:1px solid #bfdbfe">
+      <i class="fa fa-info-circle"></i> Partilhadas — já ligadas a outro movimento (fatura com múltiplos pagamentos). Podes ligar aqui também.
     </div>` : '';
 
   const modal = document.createElement('div');
@@ -3827,7 +3827,7 @@ function trocarFaturaExtrato(movId){
       <div style="padding:10px 16px;border-top:1px solid var(--border);font-size:11px;color:var(--muted);line-height:1.6">
         <i class="fa fa-eye"></i> Clica em <b>Ver</b> para abrir a fatura antes de decidires. Só o botão <b>Ligar</b> associa.<br>
         ${nExactas?`<b>${nExactas}</b> fatura(s) livre(s) com o mesmo valor do movimento — aparecem no topo.`:'Nenhuma fatura livre tem exactamente este valor.'}
-        ${ligadas.length?` · <b>${ligadas.length}</b> já ligada(s) a outro movimento (em baixo).`:''}
+        ${ligadas.length?` · <b>${ligadas.length}</b> partilhada(s) com outros movimentos (pagamentos parciais) — em baixo.`:''}
       </div>
       <div style="padding:12px 16px;border-top:1px solid var(--border);display:flex;gap:8px">
         ${(m.fat_id||m.status==='conciliado')?`<button onclick="confirmarTroca('${movId}',null)" class="btn btn-outline" style="font-size:12px">
@@ -4057,14 +4057,10 @@ function confirmarTroca(movId, fatId){
   const f = faturas.find(x=>x.id===fatId);
   if(!f) return;
 
-  const mvAnterior = movimentos.find(mv=>mv.fat_id===fatId && mv.id!==movId);
-  const avisoTransf = mvAnterior
-    ? '\n\nATENÇÃO: esta fatura já está ligada a outro movimento ('+(mvAnterior.data||'')+(mvAnterior.descricao?' · '+mvAnterior.descricao.substring(0,50):'')+').\nA ligação anterior será removida.'
-    : '';
-  if(!confirm('Ligar este movimento a:\n'+f.entidade+' €'+fmt(f.total)+'?'+avisoTransf)) return;
+  if(!confirm('Ligar este movimento a:\n'+f.entidade+' €'+fmt(f.total)+'?')) return;
 
-  // Remove a ligação anterior se havia
-  movimentos.forEach(mv=>{if(mv.fat_id===fatId && mv.id!==movId) mv.fat_id=null;});
+  // NÃO remove ligações de outros movimentos — uma fatura pode ter
+  // múltiplos pagamentos parciais ligados a vários movimentos.
 
   m.fat_id = fatId;
   m.status = 'conciliado';
