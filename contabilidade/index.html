@@ -3799,7 +3799,7 @@ function trocarFaturaExtrato(movId){
         ${nExactas?`<b>${nExactas}</b> fatura(s) com o mesmo valor do movimento — aparecem no topo.`:'Nenhuma fatura tem exactamente este valor.'}
       </div>
       <div style="padding:12px 16px;border-top:1px solid var(--border);display:flex;gap:8px">
-        ${m.fat_id?`<button onclick="confirmarTroca('${movId}',null)" class="btn btn-outline" style="font-size:12px">
+        ${(m.fat_id||m.status==='conciliado')?`<button onclick="confirmarTroca('${movId}',null)" class="btn btn-outline" style="font-size:12px">
           <i class="fa fa-unlink"></i> Remover ligação (voltar a pendente)
         </button>`:''}
         <button onclick="document.getElementById('modalTrocarFatura').remove()" class="btn btn-outline" style="font-size:12px;margin-left:auto">Cancelar</button>
@@ -4011,6 +4011,7 @@ function confirmarTroca(movId, fatId){
     document.getElementById('modalTrocarFatura')?.remove();
     renderListaExtrato();
     renderConciliacao();
+    renderPainel();
     toast('Ligação removida — movimento voltou a pendente.');
     return;
   }
