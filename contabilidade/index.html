@@ -3759,9 +3759,9 @@ function trocarFaturaExtrato(movId){
     if(ea!==eb) return ea-eb;
     return valorFat(a)-valorFat(b);
   };
-  const fatCompra = [...faturas].filter(f=>f.tipo==='compra');
-  const livres    = fatCompra.filter(f=>!jaLigadasSet.has(f.id)).sort(sortFn);
-  const ligadas   = fatCompra.filter(f=> jaLigadasSet.has(f.id)).sort(sortFn);
+  const todasFat  = [...faturas];
+  const livres    = todasFat.filter(f=>!jaLigadasSet.has(f.id)).sort(sortFn);
+  const ligadas   = todasFat.filter(f=> jaLigadasSet.has(f.id)).sort(sortFn);
   const nExactas  = livres.filter(ehExacta).length;
 
   const renderFatItem = (f, jaLigada)=>{
