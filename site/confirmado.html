@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reservas Confirmadas — VIP Turismo Paris</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#F0EDE6;--surface:#FFFFFF;--ink:#1C1C28;--ink-2:#6B6660;
+  --gilt:#B89448;--gilt-h:#9A7A38;--border:#DDD9D0;--tint:#F7F5F1;
+  --navy:#1C1C28;
+}
+@media(prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#151921;--surface:#1C2232;--ink:#E4E0D8;--ink-2:#8A8480;
+    --gilt:#C9A96E;--gilt-h:#B89448;--border:#252D42;--tint:#1C2232;--navy:#0D1117;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#151921;--surface:#1C2232;--ink:#E4E0D8;--ink-2:#8A8480;
+  --gilt:#C9A96E;--gilt-h:#B89448;--border:#252D42;--tint:#1C2232;--navy:#0D1117;
+}
+body{font-family:'Lato',system-ui,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;font-size:15px}
+.page{max-width:540px;margin:0 auto;padding-bottom:60px}
+
+/* HEADER */
+.site-hdr{padding:20px 24px 18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.brand{font-size:10px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--gilt)}
+.lock{font-size:10px;color:var(--ink-2);letter-spacing:.5px;text-transform:uppercase}
+
+/* SUCCESS HERO */
+.success-hero{padding:48px 24px 36px;text-align:center;border-bottom:1px solid var(--border)}
+.check-ring{width:80px;height:80px;border-radius:50%;border:2px solid color-mix(in srgb,var(--gilt) 35%,transparent);background:color-mix(in srgb,var(--gilt) 10%,transparent);display:flex;align-items:center;justify-content:center;margin:0 auto 22px;font-size:36px;animation:pop .5s cubic-bezier(.34,1.56,.64,1)}
+@keyframes pop{from{transform:scale(.3);opacity:0}to{transform:scale(1);opacity:1}}
+.hero-title{font-family:'Playfair Display',Georgia,serif;font-size:26px;font-weight:600;line-height:1.2;text-wrap:balance;margin-bottom:8px}
+.hero-sub{font-size:14px;color:var(--ink-2);line-height:1.7;margin-bottom:16px}
+.conf-code{display:inline-block;background:var(--tint);border:1px solid var(--border);border-radius:6px;padding:6px 16px;font-size:12px;font-family:monospace;letter-spacing:2px;color:var(--gilt);font-weight:700}
+.conf-date{font-size:11px;color:var(--ink-2);margin-top:8px;letter-spacing:.5px}
+
+/* STEPS */
+.steps-wrap{padding:28px 24px}
+.sec-lbl{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--ink-2);margin-bottom:18px}
+.steps{display:flex;flex-direction:column;gap:16px}
+.step{display:flex;align-items:flex-start;gap:14px}
+.step-n{width:26px;height:26px;border-radius:50%;background:var(--gilt);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.step-txt{font-size:14px;color:var(--ink);line-height:1.6}
+
+/* UPSELL */
+.upsell-wrap{padding:0 24px 28px}
+.upsell-intro{margin-bottom:18px}
+.upsell-intro h2{font-family:'Playfair Display',Georgia,serif;font-size:22px;font-weight:600;margin-bottom:6px;text-wrap:balance}
+.upsell-intro p{font-size:13px;color:var(--ink-2);line-height:1.6}
+.upsell-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.u-card{background:var(--surface);border-radius:8px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06),0 0 0 1px var(--border);display:flex;flex-direction:column}
+.u-img{height:80px;display:flex;align-items:center;justify-content:center;font-size:36px;position:relative}
+.u-img::after{content:'';position:absolute;inset:0;background:linear-gradient(to bottom,transparent 50%,rgba(0,0,0,.15))}
+.u-body{padding:12px 14px;flex:1;display:flex;flex-direction:column}
+.u-name{font-size:13px;font-weight:700;color:var(--ink);line-height:1.35;margin-bottom:4px}
+.u-desc{font-size:11px;color:var(--ink-2);line-height:1.45;flex:1;margin-bottom:8px}
+.u-price{font-size:11px;font-weight:700;color:var(--gilt);margin-bottom:8px;font-variant-numeric:tabular-nums}
+.u-btn{display:block;width:100%;background:var(--navy);color:var(--bg);border:none;border-radius:5px;padding:8px;font-size:12px;font-weight:700;cursor:pointer;text-align:center;text-decoration:none;letter-spacing:.3px;transition:opacity .2s}
+.u-btn:hover{opacity:.85}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]) .u-btn{background:var(--gilt);color:#151921}}
+:root[data-theme="dark"] .u-btn{background:var(--gilt);color:#151921}
+
+/* CTA BOTTOM */
+.cta-bottom{margin:0 24px;background:var(--navy);color:var(--bg);border-radius:10px;padding:28px 24px;text-align:center}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]) .cta-bottom{background:var(--tint);color:var(--ink)}}
+:root[data-theme="dark"] .cta-bottom{background:var(--tint);color:var(--ink)}
+.cta-bottom h3{font-family:'Playfair Display',Georgia,serif;font-size:18px;font-weight:600;margin-bottom:8px}
+.cta-bottom p{font-size:13px;opacity:.75;margin-bottom:20px;line-height:1.6}
+.btn-wp{display:flex;align-items:center;justify-content:center;gap:8px;background:#25D366;color:#fff;border:none;border-radius:6px;padding:14px;font-size:14px;font-weight:700;cursor:pointer;text-decoration:none;transition:background .2s;letter-spacing:.3px}
+.btn-wp:hover{background:#1ebe5d}
+
+/* FOOTER */
+footer{border-top:1px solid var(--border);margin-top:40px;padding:24px;text-align:center;font-size:11px;color:var(--ink-2);letter-spacing:.5px;text-transform:uppercase;line-height:1.9}
+footer strong{color:var(--gilt);font-size:12px}
+
+@media(prefers-reduced-motion:reduce){.check-ring{animation:none}}
+@media(min-width:600px){.upsell-grid{grid-template-columns:repeat(4,1fr)}}
+</style>
+</head>
+<body>
+<div class="page" id="page">
+  <header class="site-hdr"><span class="brand">VIP Turismo Paris</span><span class="lock">🔒 Seguro</span></header>
+  <div id="main"></div>
+</div>
+<script>
+const WP='33XXXXXXXXX'; // substitua pelo número WhatsApp da empresa
+const CO='VIP Turismo Paris';
+
+const UPSELLS=[
+  {e:'🛥️',c:'#006064',n:'Cruzeiro no Rio Sena',d:'Passeio ao entardecer pelos monumentos de Paris',p:'A partir de €45/pp'},
+  {e:'🗼',c:'#e65100',n:'Torre Eiffel VIP',d:'Acesso prioritário ao topo com guia em português',p:'A partir de €85/pp'},
+  {e:'🏰',c:'#4a148c',n:'Versalhes — Day Trip',d:'Palácio e jardins com transporte incluso',p:'A partir de €120/pp'},
+  {e:'🎨',c:'#1a237e',n:'Louvre Privativo',d:'Tour guiado com acesso VIP às obras principais',p:'A partir de €75/pp'},
+  {e:'🍷',c:'#880e4f',n:'Tour Gastronômico',d:'Degustação de vinhos e gastronomia parisiense',p:'A partir de €95/pp'},
+  {e:'🌹',c:'#b71c1c',n:'Jantar Romântico',d:'Gourmet com vista para a Torre Eiffel iluminada',p:'A partir de €180/pp'},
+  {e:'🎭',c:'#c62828',n:'Moulin Rouge',d:'Espetáculo icônico com champagne na primeira fila',p:'A partir de €120/pp'},
+  {e:'🚖',c:'#1b5e20',n:'Transfer Executivo',d:'Van de luxo com motorista exclusivo 24h',p:'A partir de €95/trecho'},
+];
+
+function dec(h){try{return JSON.parse(decodeURIComponent(escape(atob(h))));}catch(e){return null;}}
+function esc(t){return String(t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function wpLink(msg){return `https://wa.me/${WP}?text=${encodeURIComponent(msg)}`;}
+
+function init(){
+  const hash=location.hash.slice(1);
+  const d=hash?dec(hash):{};
+  const nome=(d.cliente?.nome||'').split(' ')[0]||'Cliente';
+  const titulo=d.titulo||'seu roteiro';
+  const ref=(d.id||'').slice(-6).toUpperCase()||'—';
+  const now=new Date().toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+  const wpConf=wpLink(`Olá! Confirmei meu roteiro "${titulo}" (ref. ${ref}). Pode prosseguir com as reservas. ✅`);
+  const wpDvd=wpLink(`Olá! Acabei de confirmar meu roteiro (ref. ${ref}) e tenho interesse em adicionar mais serviços à minha viagem.`);
+
+  const uCards=UPSELLS.map(u=>`<div class="u-card">
+    <div class="u-img" style="background:${u.c}18">${u.e}</div>
+    <div class="u-body">
+      <div class="u-name">${esc(u.n)}</div>
+      <div class="u-desc">${esc(u.d)}</div>
+      <div class="u-price">${esc(u.p)}</div>
+      <a class="u-btn" href="${wpLink(`Olá! Tenho interesse em adicionar ao meu roteiro (ref. ${ref}): ${u.n}`)}" target="_blank">Solicitar</a>
+    </div>
+  </div>`).join('');
+
+  document.getElementById('main').innerHTML=`
+    <div class="success-hero">
+      <div class="check-ring">✅</div>
+      <h1 class="hero-title">Tudo confirmado,<br>${esc(nome)}!</h1>
+      <p class="hero-sub">Suas reservas foram aceitas com sucesso.<br>Nossa equipe já foi notificada e cuidará de cada detalhe.</p>
+      <span class="conf-code">#${esc(ref)}</span>
+      <div class="conf-date">Confirmado em ${now}</div>
+    </div>
+
+    <div class="steps-wrap">
+      <div class="sec-lbl">O que acontece agora</div>
+      <div class="steps">
+        <div class="step"><span class="step-n">1</span><span class="step-txt">Nossa equipe revisará suas reservas e enviará os vouchers por e-mail.</span></div>
+        <div class="step"><span class="step-n">2</span><span class="step-txt">Sua consultora entrará em contato via WhatsApp para os últimos detalhes.</span></div>
+        <div class="step"><span class="step-n">3</span><span class="step-txt">Você receberá os contatos de todos os fornecedores antes da viagem.</span></div>
+        <div class="step"><span class="step-n">4</span><span class="step-txt">Aproveite cada momento — cuidamos de tudo para você. 🥂</span></div>
+      </div>
+    </div>
+
+    <div class="upsell-wrap">
+      <div class="upsell-intro">
+        <h2>Enriqueça sua experiência</h2>
+        <p>Serviços exclusivos que você pode adicionar ao seu roteiro agora mesmo.</p>
+      </div>
+      <div class="upsell-grid">${uCards}</div>
+    </div>
+
+    <div class="cta-bottom">
+      <h3>Ficou com dúvidas?</h3>
+      <p>Sua consultora está disponível para ajudar com qualquer detalhe da sua viagem em Paris.</p>
+      <a href="${wpConf}" class="btn-wp" target="_blank">💬 Notificar minha consultora no WhatsApp</a>
+    </div>
+
+    <footer><strong>${CO}</strong><br>info@vipturismoparis.com</footer>`;
+}
+init();
+</script>
+</body>
+</html>

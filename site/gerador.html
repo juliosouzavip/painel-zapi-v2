@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gerador de Roteiros — VIP Turismo Paris</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0E1118;--panel:#151B27;--card:#1B2235;--edge:#242E45;
+  --ink:#DDE3EE;--ink-2:#7A88A4;--gilt:#C9A96E;--gilt-h:#B89448;
+  --green:#3aaa5a;--red:#e06060;--amber:#E09A3A;
+}
+body{font-family:'Lato',system-ui,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;font-size:14px;line-height:1.6}
+
+/* NAV */
+.nav{background:var(--panel);border-bottom:1px solid var(--edge);padding:16px 24px;display:flex;justify-content:space-between;align-items:center}
+.nav-brand{font-size:10px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--gilt)}
+.nav-title{font-family:'Playfair Display',Georgia,serif;font-size:15px;font-weight:400;color:var(--ink-2);margin-top:3px}
+
+/* LOCK SCREEN */
+#lockScreen{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999;gap:12px;padding:24px}
+#lockScreen h2{font-family:'Playfair Display',Georgia,serif;font-size:22px;font-weight:400;color:var(--gilt);margin-bottom:4px}
+#lockScreen p{font-size:13px;color:var(--ink-2);margin-bottom:8px}
+#lockInput{background:var(--card);border:1px solid var(--edge);border-radius:6px;padding:12px 16px;color:var(--ink);font-size:15px;width:100%;max-width:280px;outline:none;text-align:center;letter-spacing:4px}
+#lockInput:focus{border-color:var(--gilt)}
+#lockErr{font-size:12px;color:var(--red);min-height:16px}
+
+/* WRAP */
+.wrap{max-width:720px;margin:0 auto;padding:28px 20px 80px}
+
+/* SECTION */
+.sec{background:var(--panel);border:1px solid var(--edge);border-radius:12px;padding:24px;margin-bottom:20px}
+.sec-hdr{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--gilt);margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid var(--edge)}
+
+/* FORM */
+.row{display:grid;gap:12px;margin-bottom:12px}
+.r2{grid-template-columns:1fr 1fr}
+.r3{grid-template-columns:1fr 1fr 1fr}
+label{display:flex;flex-direction:column;gap:5px;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink-2)}
+input,select,textarea{background:var(--card);border:1px solid var(--edge);border-radius:6px;padding:10px 12px;color:var(--ink);font-size:13px;width:100%;outline:none;transition:border-color .15s;font-family:inherit}
+input:focus,select:focus,textarea:focus{border-color:var(--gilt)}
+textarea{resize:vertical;min-height:68px}
+select{cursor:pointer}
+select option{background:var(--card)}
+
+/* SERVICE ITEM */
+.svc-item{background:var(--card);border:1px solid var(--edge);border-radius:8px;padding:16px;margin-bottom:10px;position:relative}
+.svc-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.svc-num{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--gilt)}
+.rem-btn{background:none;border:none;color:var(--red);font-size:18px;cursor:pointer;padding:2px 8px;border-radius:4px;line-height:1;transition:background .15s}
+.rem-btn:hover{background:rgba(224,96,96,.1)}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;border:none;border-radius:6px;padding:10px 18px;font-size:13px;font-weight:700;cursor:pointer;transition:background .2s,transform .1s;letter-spacing:.3px}
+.btn:active{transform:scale(.97)}
+.btn-gilt{background:var(--gilt);color:#0E1118}
+.btn-gilt:hover{background:var(--gilt-h)}
+.btn-gilt:disabled{background:color-mix(in srgb,var(--gilt) 40%,transparent);cursor:not-allowed}
+.btn-out{background:transparent;color:var(--ink-2);border:1px solid var(--edge)}
+.btn-out:hover{border-color:var(--gilt);color:var(--gilt)}
+.btn-green{background:#1a6634;color:#fff}
+.btn-green:hover{background:#1e7a3c}
+.btn-sm{padding:7px 12px;font-size:12px}
+
+/* RESULT */
+#result{display:none;border:1px solid rgba(58,170,90,.3);background:rgba(58,170,90,.06);border-radius:10px;padding:20px;margin-top:16px}
+#result h3{font-size:13px;font-weight:700;color:var(--green);margin-bottom:12px;letter-spacing:.5px;text-transform:uppercase}
+.link-row{display:flex;gap:8px;align-items:stretch}
+.link-url{flex:1;background:var(--card);border:1px solid var(--edge);border-radius:6px;padding:10px 12px;font-size:12px;font-family:monospace;color:var(--ink);overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.result-btns{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+
+/* TABLE */
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:8px 12px;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink-2);border-bottom:1px solid var(--edge)}
+td{padding:10px 12px;border-bottom:1px solid var(--edge);color:var(--ink);vertical-align:middle}
+tr:last-child td{border:none}
+tr:hover td{background:rgba(255,255,255,.02)}
+.badge{display:inline-block;padding:3px 10px;border-radius:12px;font-size:10px;font-weight:700;letter-spacing:.5px}
+.b-pend{background:rgba(224,154,58,.1);color:var(--amber);border:1px solid rgba(224,154,58,.25)}
+.b-conf{background:rgba(58,170,90,.1);color:var(--green);border:1px solid rgba(58,170,90,.25)}
+.empty-row td{text-align:center;padding:32px;color:var(--ink-2)}
+
+/* TOAST */
+#toast{position:fixed;bottom:24px;right:24px;background:var(--panel);border:1px solid var(--edge);border-radius:8px;padding:11px 18px;font-size:13px;color:var(--ink);display:none;z-index:99;box-shadow:0 8px 30px rgba(0,0,0,.4)}
+
+/* SPIN */
+.spin{width:14px;height:14px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;display:inline-block}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* DIVIDER */
+.divider{display:flex;align-items:center;gap:10px;margin:4px 0 16px}
+.d-line{flex:1;height:1px;background:var(--edge)}
+.d-txt{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink-2)}
+
+@media(max-width:540px){.r2,.r3{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<!-- LOCK SCREEN -->
+<div id="lockScreen">
+  <div style="font-size:10px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--gilt);margin-bottom:2px">VIP Turismo Paris</div>
+  <h2>Painel Interno</h2>
+  <p>Digite a senha de acesso para continuar</p>
+  <input id="lockInput" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')unlock()">
+  <div id="lockErr"></div>
+  <button class="btn btn-gilt" onclick="unlock()">Entrar</button>
+</div>
+
+<nav class="nav">
+  <div>
+    <div class="nav-brand">VIP Turismo Paris</div>
+    <div class="nav-title">Gerador de Roteiros</div>
+  </div>
+  <button class="btn btn-out btn-sm" onclick="loadTable()">↺ Atualizar lista</button>
+</nav>
+
+<div class="wrap">
+
+  <!-- FORM -->
+  <div class="sec">
+    <div class="sec-hdr">Novo Roteiro</div>
+
+    <div class="divider"><span class="d-txt">Cliente</span><div class="d-line"></div></div>
+    <div class="row r3">
+      <label>Nome<input id="cliNome" placeholder="Maria Silva" type="text"></label>
+      <label>Telefone (WhatsApp)<input id="cliTel" placeholder="+55 11 99999-0000" type="text"></label>
+      <label>E-mail<input id="cliEmail" placeholder="cliente@email.com" type="email"></label>
+    </div>
+
+    <div class="divider"><span class="d-txt">Viagem</span><div class="d-line"></div></div>
+    <div class="row">
+      <label>Título da Viagem<input id="titulo" placeholder="Ex: Paris Romântico — 7 Dias" type="text"></label>
+    </div>
+    <div class="row">
+      <label>Mensagem pessoal para o cliente<textarea id="msg" placeholder="Ex: Querida Maria, preparei com muito carinho cada detalhe deste roteiro..."></textarea></label>
+    </div>
+    <div class="row r2">
+      <label>Expira em (opcional)<input id="exp" type="datetime-local"></label>
+    </div>
+
+    <div class="divider"><span class="d-txt">Serviços</span><div class="d-line"></div></div>
+    <div id="svcsBox"></div>
+    <button class="btn btn-out" onclick="addSvc()">+ Adicionar serviço</button>
+
+    <div style="margin-top:22px;display:flex;gap:10px;flex-wrap:wrap">
+      <button class="btn btn-gilt" id="btnGer" onclick="gerar()">🚀 Gerar Roteiro</button>
+      <button class="btn btn-out" onclick="limpar()">Limpar formulário</button>
+    </div>
+
+    <div id="result">
+      <h3>✅ Roteiro criado</h3>
+      <p style="font-size:12px;color:var(--ink-2);margin-bottom:10px">Compartilhe este link com o cliente:</p>
+      <div class="link-row">
+        <span class="link-url" id="linkUrl"></span>
+        <button class="btn btn-out btn-sm" onclick="copiar()">📋 Copiar</button>
+      </div>
+      <div class="result-btns">
+        <a class="btn btn-green btn-sm" id="btnWp" href="#" target="_blank">📱 Enviar WhatsApp</a>
+        <a class="btn btn-out btn-sm" id="btnVer" href="#" target="_blank">👁 Visualizar</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- LISTA -->
+  <div class="sec">
+    <div class="sec-hdr">Roteiros Salvos (este navegador)</div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Cliente</th><th>Título</th><th>Status</th><th>Criado</th><th>Ações</th></tr></thead>
+        <tbody id="tbl"><tr class="empty-row"><td colspan="5">Nenhum roteiro salvo ainda.</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<div id="toast"></div>
+
+<script>
+/* ── CONFIG ── (EDITE AQUI) */
+const SENHA='vip2024';     // senha de acesso ao painel — altere para sua senha
+const WP='33XXXXXXXXX';   // número WhatsApp da empresa sem + (ex: 33612345678)
+const BASE_URL='https://vipturismoparis.com'; // URL do seu site
+
+const TIPOS=[
+  {v:'transfer',   l:'🚗 Transfer'},
+  {v:'voo',        l:'✈️ Voo'},
+  {v:'hotel',      l:'🏨 Hotel'},
+  {v:'tour',       l:'🗼 Passeio / Tour'},
+  {v:'restaurante',l:'🍽️ Restaurante'},
+  {v:'ingresso',   l:'🎟️ Ingresso / Atração'},
+  {v:'cruzeiro',   l:'🛥️ Cruzeiro'},
+  {v:'outro',      l:'📋 Outro'},
+];
+
+/* ── LOCK ── */
+function unlock(){
+  const v=document.getElementById('lockInput').value;
+  if(v===SENHA){document.getElementById('lockScreen').style.display='none';}
+  else{document.getElementById('lockErr').textContent='Senha incorreta.';document.getElementById('lockInput').value='';}
+}
+
+/* ── ENCODE / DECODE ── */
+function enc(obj){return btoa(unescape(encodeURIComponent(JSON.stringify(obj))));}
+function dec(s){try{return JSON.parse(decodeURIComponent(escape(atob(s))));}catch(e){return null;}}
+function uid(){return Math.random().toString(36).slice(2,10);}
+function esc(t){return String(t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+/* ── SERVICES ── */
+let count=0;
+function addSvc(data={}){
+  count++;
+  const n=count;
+  const sel=TIPOS.map(t=>`<option value="${t.v}"${data.tipo===t.v?' selected':''}>${t.l}</option>`).join('');
+  const el=document.createElement('div');
+  el.className='svc-item';el.id=`s${n}`;
+  el.innerHTML=`
+    <div class="svc-hdr"><span class="svc-num">Serviço ${n}</span><button class="rem-btn" onclick="this.closest('.svc-item').remove()">×</button></div>
+    <div class="row r2">
+      <label>Tipo<select data-f="tipo">${sel}</select></label>
+      <label>Nome<input data-f="nome" placeholder="Ex: Transfer CDG → Hotel" value="${esc(data.nome||'')}"></label>
+    </div>
+    <div class="row r3">
+      <label>Data<input data-f="data" placeholder="AAAA-MM-DD" value="${esc(data.data||'')}"></label>
+      <label>Horário<input data-f="hora" placeholder="14:30" value="${esc(data.hora||'')}"></label>
+      <label>Valor (opcional)<input data-f="valor" placeholder="€120/pp" value="${esc(data.valor||'')}"></label>
+    </div>
+    <div class="row">
+      <label>Local / Endereço<input data-f="local" placeholder="Ex: Terminal 2E, Aeroporto CDG" value="${esc(data.local||'')}"></label>
+    </div>
+    <div class="row r2">
+      <label>Descrição<textarea data-f="desc" rows="2" placeholder="Detalhes do serviço">${esc(data.desc||'')}</textarea></label>
+      <label>Observações<input data-f="obs" placeholder="Ex: Apresentar voucher" value="${esc(data.obs||'')}"></label>
+    </div>`;
+  document.getElementById('svcsBox').appendChild(el);
+}
+
+function getSvcs(){
+  return [...document.querySelectorAll('.svc-item')].map(el=>{
+    const o={};el.querySelectorAll('[data-f]').forEach(f=>{o[f.dataset.f]=f.value.trim();});return o;
+  }).filter(s=>s.nome);
+}
+
+/* ── GENERATE ── */
+let currentLink='';
+function gerar(){
+  const titulo=document.getElementById('titulo').value.trim();
+  if(!titulo){toast('Informe o título da viagem.',false);return;}
+  const btn=document.getElementById('btnGer');
+  btn.disabled=true;btn.innerHTML='<span class="spin"></span> Gerando...';
+
+  const id=uid();
+  const data={
+    v:1,id,
+    cliente:{
+      nome:document.getElementById('cliNome').value.trim(),
+      telefone:document.getElementById('cliTel').value.trim(),
+      email:document.getElementById('cliEmail').value.trim(),
+    },
+    titulo,
+    msg:document.getElementById('msg').value.trim(),
+    exp:document.getElementById('exp').value||undefined,
+    svcs:getSvcs(),
+  };
+
+  const encoded=enc(data);
+  currentLink=`${BASE_URL}/roteiro.html#${encoded}`;
+  document.getElementById('linkUrl').textContent=currentLink;
+  const cliTel=(data.cliente.telefone||'').replace(/\D/g,'');
+  const wpMsg=encodeURIComponent(`Olá ${data.cliente.nome||''}! Seu roteiro personalizado está pronto. Acesse para visualizar todos os detalhes e confirmar suas reservas:\n\n${currentLink}`);
+  document.getElementById('btnWp').href=cliTel?`https://wa.me/${cliTel}?text=${wpMsg}`:`https://wa.me/?text=${wpMsg}`;
+  document.getElementById('btnVer').href=currentLink;
+  document.getElementById('result').style.display='block';
+  document.getElementById('result').scrollIntoView({behavior:'smooth',block:'center'});
+
+  // save to localStorage
+  try{
+    const saved=JSON.parse(localStorage.getItem('vip_roteiros')||'[]');
+    saved.unshift({id,titulo,cliente:data.cliente.nome,status:'pendente',criadoEm:new Date().toISOString(),link:currentLink});
+    localStorage.setItem('vip_roteiros',JSON.stringify(saved.slice(0,50)));
+  }catch(e){}
+
+  toast('Roteiro gerado!');
+  btn.disabled=false;btn.innerHTML='🚀 Gerar Roteiro';
+  loadTable();
+}
+
+function copiar(){
+  if(!currentLink)return;
+  navigator.clipboard.writeText(currentLink)
+    .then(()=>toast('Link copiado!'))
+    .catch(()=>{prompt('Copie o link:',currentLink);});
+}
+
+function limpar(){
+  ['cliNome','cliTel','cliEmail','titulo','msg','exp'].forEach(id=>{document.getElementById(id).value='';});
+  document.getElementById('svcsBox').innerHTML='';
+  document.getElementById('result').style.display='none';
+  count=0;addSvc();
+}
+
+/* ── TABLE ── */
+function fmtDate(s){if(!s)return '—';try{return new Date(s).toLocaleDateString('pt-BR');}catch(e){return s;}}
+function loadTable(){
+  const tbl=document.getElementById('tbl');
+  try{
+    const list=JSON.parse(localStorage.getItem('vip_roteiros')||'[]');
+    if(!list.length){tbl.innerHTML='<tr class="empty-row"><td colspan="5">Nenhum roteiro salvo ainda.</td></tr>';return;}
+    tbl.innerHTML=list.map(r=>`<tr>
+      <td>${esc(r.cliente||'—')}</td>
+      <td>${esc(r.titulo||'—')}</td>
+      <td><span class="badge ${r.status==='confirmado'?'b-conf':'b-pend'}">${r.status==='confirmado'?'✓ Confirmado':'⏳ Pendente'}</span></td>
+      <td>${fmtDate(r.criadoEm)}</td>
+      <td style="white-space:nowrap">
+        <a href="${esc(r.link)}" target="_blank" class="btn btn-out btn-sm" style="text-decoration:none">🔗 Abrir</a>
+        <button class="btn btn-out btn-sm" style="margin-left:4px" onclick="navigator.clipboard.writeText('${esc(r.link)}').then(()=>toast('Copiado!'))">📋</button>
+      </td>
+    </tr>`).join('');
+  }catch(e){tbl.innerHTML='<tr class="empty-row"><td colspan="5">Erro ao carregar.</td></tr>';}
+}
+
+/* ── TOAST ── */
+function toast(msg,ok=true){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.style.display='block';
+  t.style.borderColor=ok?'rgba(58,170,90,.4)':'rgba(224,96,96,.4)';
+  clearTimeout(t._t);t._t=setTimeout(()=>t.style.display='none',2800);
+}
+
+/* ── INIT ── */
+addSvc();
+loadTable();
+// auto-focus password
+document.getElementById('lockInput').focus();
+</script>
+</body>
+</html>

@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VIP Turismo Paris</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#F0EDE6;--surface:#FFFFFF;--ink:#1C1C28;--ink-2:#6B6660;
+  --gilt:#B89448;--gilt-h:#9A7A38;--border:#DDD9D0;--tint:#F7F5F1;
+  --green:#2a8a4a;--red:#c44;
+}
+@media(prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#151921;--surface:#1C2232;--ink:#E4E0D8;--ink-2:#8A8480;
+    --gilt:#C9A96E;--gilt-h:#B89448;--border:#252D42;--tint:#1C2232;
+    --green:#3aaa5a;--red:#e06060;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#151921;--surface:#1C2232;--ink:#E4E0D8;--ink-2:#8A8480;
+  --gilt:#C9A96E;--gilt-h:#B89448;--border:#252D42;--tint:#1C2232;
+  --green:#3aaa5a;--red:#e06060;
+}
+body{font-family:'Lato',system-ui,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;font-size:15px;line-height:1.6}
+.page{max-width:540px;margin:0 auto;padding-bottom:60px}
+
+/* HEADER */
+.site-hdr{padding:20px 24px 18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.brand{font-size:10px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--gilt)}
+.lock{font-size:10px;color:var(--ink-2);letter-spacing:.5px;text-transform:uppercase}
+
+/* TITLE BLOCK */
+.title-block{padding:36px 24px 28px;border-bottom:1px solid var(--border)}
+.ref-lbl{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--ink-2);margin-bottom:10px}
+.client-name{font-family:'Playfair Display',Georgia,serif;font-size:34px;font-weight:600;line-height:1.15;color:var(--ink);text-wrap:balance;margin-bottom:6px}
+.trip-title{font-family:'Playfair Display',Georgia,serif;font-size:17px;font-style:italic;font-weight:400;color:var(--gilt);margin-bottom:18px}
+.pill{display:inline-flex;align-items:center;gap:5px;padding:4px 13px;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase}
+.pill-pend{background:color-mix(in srgb,var(--gilt) 12%,transparent);color:var(--gilt);border:1px solid color-mix(in srgb,var(--gilt) 30%,transparent)}
+.pill-conf{color:var(--green);background:rgba(42,138,74,.1);border:1px solid rgba(42,138,74,.25)}
+.pill-exp{color:var(--red);background:rgba(204,68,68,.08);border:1px solid rgba(204,68,68,.2)}
+
+/* PERSONAL MESSAGE */
+.msg-wrap{padding:24px 24px 0}
+.msg-block{padding:18px 20px;border-left:2px solid var(--gilt);background:var(--tint);border-radius:0 8px 8px 0}
+.msg-text{font-family:'Playfair Display',Georgia,serif;font-style:italic;font-size:15px;color:var(--ink);line-height:1.75}
+.msg-from{margin-top:10px;font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--gilt)}
+
+/* SERVICES */
+.svcs-wrap{padding:28px 24px 0}
+.sec-lbl{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--ink-2);margin-bottom:20px}
+.day-row{display:flex;align-items:center;gap:10px;margin:22px 0 10px}
+.day-row:first-child{margin-top:0}
+.day-line{flex:1;height:1px;background:var(--border)}
+.day-lbl{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink-2);white-space:nowrap}
+
+/* SERVICE CARD */
+.svc{background:var(--surface);border-radius:8px;margin-bottom:8px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06),0 0 0 1px var(--border);display:flex}
+.svc-strip{width:3px;flex-shrink:0}
+.svc-body{padding:14px 16px;flex:1;min-width:0}
+.svc-type{font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--ink-2);margin-bottom:3px}
+.svc-name{font-size:15px;font-weight:700;color:var(--ink);line-height:1.3;margin-bottom:8px}
+.svc-meta{display:flex;flex-wrap:wrap;gap:6px 14px;margin-bottom:7px}
+.svc-mi{font-size:12px;color:var(--ink-2);display:flex;align-items:center;gap:4px}
+.svc-desc{font-size:13px;color:var(--ink);line-height:1.65}
+.svc-obs{margin-top:8px;font-size:12px;color:#8B6914;background:rgba(184,148,72,.1);border-radius:4px;padding:6px 10px;border-left:2px solid var(--gilt);line-height:1.5}
+
+/* CONFIRM */
+.confirm-wrap{padding:28px 24px 0}
+.confirm-note{font-size:13px;color:var(--ink-2);text-align:center;line-height:1.8;margin-bottom:18px;padding:0 4px}
+.btn-confirm{display:block;width:100%;background:var(--gilt);color:#fff;border:none;border-radius:6px;padding:16px 20px;font-family:'Playfair Display',Georgia,serif;font-size:17px;font-weight:600;cursor:pointer;letter-spacing:.3px;transition:background .2s,transform .1s}
+.btn-confirm:hover{background:var(--gilt-h)}
+.btn-confirm:active{transform:scale(.99)}
+.btn-confirm:disabled{opacity:.55;cursor:not-allowed}
+.btn-wp{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;background:transparent;color:var(--ink-2);border:1px solid var(--border);border-radius:6px;padding:12px;font-size:13px;font-weight:700;cursor:pointer;margin-top:10px;text-decoration:none;letter-spacing:.3px;transition:border-color .2s,color .2s}
+.btn-wp:hover{border-color:#25D366;color:#25D366}
+
+/* STATE SCREENS */
+.state-box{padding:48px 24px;text-align:center}
+.state-icon{font-size:54px;margin-bottom:18px}
+.state-box h2{font-family:'Playfair Display',Georgia,serif;font-size:22px;font-weight:600;margin-bottom:8px}
+.state-box p{font-size:14px;color:var(--ink-2);line-height:1.7}
+.state-box a{color:var(--gilt);text-decoration:none}
+.loader{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:70vh;gap:14px}
+.spin{width:30px;height:30px;border:2px solid var(--border);border-top-color:var(--gilt);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* FOOTER */
+footer{border-top:1px solid var(--border);margin-top:40px;padding:24px;text-align:center;font-size:11px;color:var(--ink-2);letter-spacing:.5px;text-transform:uppercase;line-height:1.9}
+footer strong{color:var(--gilt);font-size:12px}
+
+@media(prefers-reduced-motion:reduce){.spin{animation:none}}
+</style>
+</head>
+<body>
+<div class="page" id="page"><div class="loader"><div class="spin"></div></div></div>
+<script>
+/* ── CONFIG ── */
+const WP = '33XXXXXXXXX'; // substitua pelo número WhatsApp da empresa (ex: 33612345678)
+const CO = 'VIP Turismo Paris';
+
+/* ── TIPOS DE SERVIÇO ── */
+const T = {
+  voo:         {l:'Voo',         e:'✈️', c:'#5470C6'},
+  transfer:    {l:'Transfer',    e:'🚗', c:'#4E9F7B'},
+  hotel:       {l:'Hotel',       e:'🏨', c:'#8B5CF6'},
+  tour:        {l:'Passeio',     e:'🗼', c:'#D97706'},
+  restaurante: {l:'Restaurante', e:'🍽️', c:'#DC4444'},
+  ingresso:    {l:'Ingresso',    e:'🎟️', c:'#0891B2'},
+  cruzeiro:    {l:'Cruzeiro',    e:'🛥️', c:'#2563EB'},
+  outro:       {l:'Serviço',     e:'📋', c:'#6B7280'},
+};
+
+/* ── DADOS DE DEMONSTRAÇÃO (apague ou substitua pelo link real) ── */
+const DEMO = {v:1,id:'demo01',
+  cliente:{nome:'Isabelle Martins',telefone:'+55 11 99999-9999'},
+  titulo:'Paris Romântico — 7 Dias',
+  msg:'Querida Isabelle, preparei com muito carinho cada detalhe deste roteiro para que sua experiência em Paris seja verdadeiramente inesquecível. Cada reserva foi pensada no seu conforto e estilo. Qualquer dúvida, estou à disposição!',
+  svcs:[
+    {tipo:'voo',nome:'Voo São Paulo → Paris',data:'2024-03-10',hora:'23:00',local:'Aeroporto GRU — Terminal 3',desc:'Air France AF 457. Chegada Paris CDG 14h30 (+1 dia). Bagagem despachada incluída.',obs:'Chegue ao aeroporto 3h antes do voo'},
+    {tipo:'transfer',nome:'Transfer CDG → Hotel',data:'2024-03-11',hora:'15:30',local:'Terminal 2E, Aeroporto Charles de Gaulle',desc:'Motorista particular aguardando com placa identificada. Van executiva com água e Wi-Fi a bordo.',obs:''},
+    {tipo:'hotel',nome:'Hôtel Le Marais Élégance — Check-in',data:'2024-03-11',hora:'16:00',local:'14 Rue de Bretagne, Paris 3e',desc:'Quarto Superior com vista para telhados parisienses. Café da manhã incluído. Late check-out garantido.',obs:''},
+    {tipo:'tour',nome:'Montmartre e Sacré-Cœur com guia',data:'2024-03-12',hora:'10:00',local:'Saída do hotel',desc:'Guia particular em português. Visita à Basílica de Sacré-Cœur, Village de l\'Abbesse e ateliês de artistas.',obs:''},
+    {tipo:'restaurante',nome:'Jantar — Le Grand Véfour',data:'2024-03-12',hora:'20:30',local:'17 Rue de Beaujolais, Palais-Royal',desc:'Restaurante histórico do século XVIII, 2 estrelas Michelin. Menu degustação com harmonização de vinhos.',obs:'Dress code: traje formal'},
+    {tipo:'ingresso',nome:'Torre Eiffel — Acesso VIP ao 3° andar',data:'2024-03-13',hora:'11:00',local:'Champ de Mars, 5 Av. Anatole France',desc:'Acesso prioritário sem filas. Subida ao topo a 276m. Inclui taça de champagne.',obs:''},
+    {tipo:'cruzeiro',nome:'Cruzeiro ao Entardecer — Rio Sena',data:'2024-03-13',hora:'17:30',local:'Embarcadero Port de la Bourdonnais',desc:'1h30 pelos monumentos ao pôr do sol. Champagne e petiscos incluídos. Lugar reservado à boreste.',obs:''},
+    {tipo:'transfer',nome:'Transfer Hotel → Aeroporto CDG',data:'2024-03-17',hora:'06:00',local:'Saída do hotel',desc:'Motorista particular. Saída pontual para o voo de retorno.',obs:'Malas prontas às 05h30'},
+  ]
+};
+
+/* ── UTILITÁRIOS ── */
+function dec(h){try{return JSON.parse(decodeURIComponent(escape(atob(h))));}catch(e){return null;}}
+function esc(t){return String(t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function wp(msg){return `https://wa.me/${WP}?text=${encodeURIComponent(msg)}`;}
+function fmtDate(s){
+  if(!s)return '';
+  if(/^\d{4}-\d{2}-\d{2}/.test(s)){
+    try{const d=new Date(s+'T12:00:00');return d.toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'}).replace(/\b\w/g,c=>c.toUpperCase());}catch(e){}
+  }
+  return s;
+}
+function byDate(svcs){const g={};svcs.forEach(s=>{const k=s.data||'';(g[k]=g[k]||[]).push(s);});return g;}
+function ck(id){return `vip_c_${id}`;}
+
+/* ── RENDER CARD ── */
+function card(s){
+  const t=T[s.tipo]||T.outro;
+  return `<div class="svc">
+    <div class="svc-strip" style="background:${t.c}"></div>
+    <div class="svc-body">
+      <div class="svc-type">${t.l}</div>
+      <div class="svc-name">${esc(s.nome)}</div>
+      ${(s.hora||s.local||s.valor)?`<div class="svc-meta">
+        ${s.hora?`<span class="svc-mi">🕐 ${esc(s.hora)}</span>`:''}
+        ${s.local?`<span class="svc-mi">📍 ${esc(s.local)}</span>`:''}
+        ${s.valor?`<span class="svc-mi">💰 ${esc(s.valor)}</span>`:''}
+      </div>`:''}
+      ${s.desc?`<div class="svc-desc">${esc(s.desc)}</div>`:''}
+      ${s.obs?`<div class="svc-obs">ℹ️ ${esc(s.obs)}</div>`:''}
+    </div>
+  </div>`;
+}
+
+/* ── RENDER PÁGINA ── */
+function render(d){
+  const conf=d.status==='confirmado'||!!localStorage.getItem(ck(d.id||''));
+  const exp=d.exp&&new Date(d.exp)<new Date();
+  const pill=conf?`<span class="pill pill-conf">✓ Confirmado</span>`:exp?`<span class="pill pill-exp">Expirado</span>`:`<span class="pill pill-pend">Aguardando confirmação</span>`;
+  const ref=(d.id||'').slice(-6).toUpperCase();
+  const wpDvd=wp(`Olá! Tenho dúvidas sobre meu roteiro "${d.titulo||''}"${ref?` (ref. ${ref})`:''}.`);
+
+  const groups=byDate(d.svcs||[]);
+  let svcsHtml=Object.entries(groups).map(([dt,svcs])=>`
+    <div class="day-row"><div class="day-line"></div><span class="day-lbl">${fmtDate(dt)||'Sem data'}</span><div class="day-line"></div></div>
+    ${svcs.map(card).join('')}`).join('');
+  if(!svcsHtml)svcsHtml='<p style="color:var(--ink-2);padding:16px 0">Nenhum serviço cadastrado.</p>';
+
+  let action;
+  if(conf){
+    action=`<div class="state-box"><div class="state-icon">✅</div><h2>Roteiro confirmado</h2><p>Você já confirmou este roteiro.<br>Nossa equipe está cuidando de tudo para você.<br><br><a href="${wpDvd}">Fale conosco em caso de dúvidas →</a></p></div>`;
+  }else if(exp){
+    action=`<div class="state-box"><div class="state-icon">⏰</div><h2 style="color:var(--red)">Link expirado</h2><p>Este roteiro não está mais disponível para confirmação.<br><a href="${wpDvd}">Entre em contato com sua consultora →</a></p></div>`;
+  }else{
+    action=`<div class="confirm-wrap">
+      <p class="confirm-note">Ao confirmar, você declara estar de acordo com todos os serviços, datas, horários e reservas listados acima.</p>
+      <button class="btn-confirm" id="btnC" onclick="confirmar(this,'${esc(d.id||'')}','${esc(d.titulo||'')}')">Confirmar todas as reservas</button>
+      <a href="${wpDvd}" class="btn-wp">💬 Falar com a consultora</a>
+    </div>`;
+  }
+
+  document.getElementById('page').innerHTML=`
+    <header class="site-hdr"><span class="brand">${CO}</span><span class="lock">🔒 Seguro</span></header>
+    <div class="title-block">
+      <div class="ref-lbl">Roteiro Personalizado${ref?` · Ref. ${ref}`:''}</div>
+      <h1 class="client-name">${esc(d.cliente?.nome||'Cliente')}</h1>
+      <div class="trip-title">${esc(d.titulo||'Roteiro de Viagem')}</div>
+      ${pill}
+    </div>
+    ${d.msg?`<div class="msg-wrap"><div class="msg-block"><p class="msg-text">"${esc(d.msg)}"</p><div class="msg-from">— Sua consultora · ${CO}</div></div></div>`:''}
+    <div class="svcs-wrap">
+      <div class="sec-lbl">Serviços e reservas incluídos</div>
+      ${svcsHtml}
+    </div>
+    ${action}
+    <footer><strong>${CO}</strong><br>info@vipturismoparis.com</footer>`;
+}
+
+/* ── CONFIRMAÇÃO ── */
+function confirmar(btn,id,titulo){
+  btn.disabled=true;btn.textContent='Confirmando...';
+  localStorage.setItem(ck(id),'1');
+  const hash=location.hash||'';
+  setTimeout(()=>{location.href='confirmado.html'+hash;},150);
+}
+
+/* ── INIT ── */
+(function(){
+  const hash=location.hash.slice(1);
+  const d=hash?dec(hash):DEMO;
+  if(!d){
+    document.getElementById('page').innerHTML=`<div class="state-box" style="min-height:70vh;display:flex;flex-direction:column;align-items:center;justify-content:center"><div class="state-icon">🔍</div><h2>Roteiro não encontrado</h2><p>Verifique o link ou entre em contato com sua consultora.</p></div>`;
+    return;
+  }
+  render(d);
+})();
+</script>
+</body>
+</html>
