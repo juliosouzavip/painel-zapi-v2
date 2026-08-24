@@ -303,7 +303,7 @@ body{font-family:'Montserrat',sans-serif;background:#f4f6f9;background:var(--bg)
       <div class="tb-logo">€</div>
       <div class="tb-title">
         <h1>Contabilidade</h1>
-        <p>VIP Turismo Paris Lda · <span id="anoAtivo">2026</span> · <span style="opacity:.65;font-size:.85em" title="Versão do ficheiro instalado no servidor. Serve para confirmar que estás na versão certa.">v2026.08.19</span></p>
+        <p>VIP Turismo Paris Lda · <span id="anoAtivo">2026</span> · <span style="opacity:.65;font-size:.85em" title="Versão do ficheiro instalado no servidor. Serve para confirmar que estás na versão certa.">v2026.08.24</span></p>
       </div>
     </div>
     <div class="topbar-right">
@@ -4383,10 +4383,34 @@ function construirIndicesLancados(){
 }
 
 // Diagnóstico detalhado: retorna {motivo, texto} ou null
+function getDriveForcarPorLancar(){
+  try{ return new Set(JSON.parse(localStorage.getItem('vip_drive_forcar_por_lancar')||'[]')); }
+  catch{ return new Set(); }
+}
+
+function recuperarFicheiroDrive(fileId, motivo, callbackRecarregar){
+  if(!fileId) return;
+  // Remove de vip_drive_duplicados se estava lá
+  if(motivo==='duplicado'){
+    const s = getDriveDuplicados();
+    s.delete(fileId);
+    localStorage.setItem('vip_drive_duplicados', JSON.stringify([...s]));
+  }
+  // Adiciona à lista de "forçar como por lançar" — sobrepõe qualquer detecção automática
+  const f2 = getDriveForcarPorLancar();
+  f2.add(fileId);
+  localStorage.setItem('vip_drive_forcar_por_lancar', JSON.stringify([...f2]));
+  window._driveCache = [];
+  toast('Ficheiro recuperado — vai aparecer como "por lançar".');
+  if(typeof callbackRecarregar === 'function') callbackRecarregar();
+}
+
 function diagnosticarFicheiro(ficheiro, indices){
   const {ids, urls, porValor, dupIds} = indices;
   const fid = ficheiro.fileId||'';
   const nome = ficheiro.nome||'';
+  // Se foi forçado manualmente como "por lançar", ignora todas as outras detecções
+  if(fid && getDriveForcarPorLancar().has(fid)) return null;
   if(fid && dupIds && dupIds.has(fid)) return {motivo:'duplicado', texto:'Marcado manualmente como "já lançado"'};
   if(fid && ids.has(fid)) return {motivo:'fileid', texto:'ID de ficheiro encontrado numa fatura'};
   const fUrl = String(ficheiro.url||'').split('?')[0].split('#')[0].toLowerCase();
@@ -4478,17 +4502,16 @@ async function abrirPastaEspecifica(trimestre, mes){
     const porLancar = ficheiros.filter(f=>!jaFoiLancado(f,_idx));
     const jaLancados = ficheiros.length - porLancar.length;
 
-    let mostrarJaLancados2 = false;
+    window._mostrarJaLancados2 = false;
 
-    function renderLista2(){
-      const aVer = mostrarJaLancados2 ? ficheiros : porLancar;
+    window.renderLista2 = function(){
+      const aVer = window._mostrarJaLancados2 ? ficheiros : porLancar;
       document.getElementById('driveListaBody2').innerHTML = aVer.length === 0
         ? '<p style="color:var(--muted);font-size:13px;padding:1rem">Todos os ficheiros desta pasta já foram lançados! ✓</p>'
         : aVer.map(f=>{
             const diag = diagnosticarFicheiro(f, _idx);
             const jaLancado = diag !== null;
             const fatCorr = jaLancado ? faturas.find(fat=>extrairDriveId(fat.pdfUrl)===f.fileId) : null;
-            const podeRecuperar = diag && (diag.motivo==='duplicado'||diag.motivo==='heuristica');
             return `<div class="fat-row" id="dpf_${f.fileId}" style="flex-direction:column;gap:4px;align-items:flex-start">
               <div style="display:flex;align-items:center;gap:8px;width:100%">
                 <i class="fa fa-file-pdf" style="color:${jaLancado?'var(--muted)':'var(--red)'};font-size:16px;flex-shrink:0"></i>
@@ -4501,7 +4524,7 @@ async function abrirPastaEspecifica(trimestre, mes){
                 ${jaLancado
                   ? `<div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap">
                       <span class="badge b-ok" style="font-size:10px">Já lançado</span>
-                      ${podeRecuperar?`<button class="btn btn-sm btn-outline" style="color:var(--amber);font-size:10px;padding:2px 8px" onclick="desmarcarDriveDuplicado('${f.fileId}',()=>abrirPastaEspecifica('${trimestre}','${mes}'))"><i class="fa fa-undo"></i> Recuperar</button>`:''}
+                      <button class="btn btn-sm btn-outline" style="color:var(--amber);font-size:10px;padding:2px 8px" onclick="recuperarFicheiroDrive('${f.fileId}','${diag?diag.motivo:''}',()=>abrirPastaEspecifica('${trimestre}','${mes}'))"><i class="fa fa-undo"></i> Recuperar</button>
                     </div>`
                   : `<button class="btn btn-sm btn-gold" onclick="processarFicheiroDrive2('${f.fileId}','${f.nome}','${f.mime||'application/pdf'}','${f.url}')"><i class="fa fa-magic"></i> IA</button> <button class="btn btn-sm btn-outline" title="Marcar como já lançada sem usar a IA" onclick="marcarLancadaManual('${f.fileId}',this)"><i class="fa fa-check"></i> Já lançada</button>`
                 }
@@ -4520,7 +4543,7 @@ async function abrirPastaEspecifica(trimestre, mes){
           <span class="badge b-warn">${porLancar.length} por lançar</span>
           <span class="badge b-ok">${jaLancados} já lançados</span>
           <label style="font-size:11px;color:var(--muted);display:flex;align-items:center;gap:4px;cursor:pointer">
-            <input type="checkbox" id="chkLancados2" onchange="mostrarJaLancados2=this.checked;renderLista2()">
+            <input type="checkbox" id="chkLancados2" onchange="window._mostrarJaLancados2=this.checked;renderLista2()">
             Mostrar já lançados
           </label>
         </div>
@@ -4582,11 +4605,11 @@ async function abrirImportarTodasPastas(){
     });
 
     // Por defeito: mostrar só os por lançar
-    let mostrarJaLancados = false;
+    window._mostrarJaLancados = false;
 
-    function renderDriveLista(){
+    window.renderDriveLista = function(){
       const ficsPorLancar = ficheiros.filter(f=>!jaFoiLancado(f,_idxTodas));
-      const ficsAMostrar = mostrarJaLancados ? ficheiros : ficsPorLancar;
+      const ficsAMostrar = window._mostrarJaLancados ? ficheiros : ficsPorLancar;
 
       // Reagrupar por pasta com os ficheiros filtrados
       const porPastaFiltrada = {};
@@ -4607,7 +4630,6 @@ async function abrirImportarTodasPastas(){
               const diag = diagnosticarFicheiro(f, _idxTodas);
               const jaLancado = diag !== null;
               const fatCorr = jaLancado ? (faturas.find(fat=>extrairDriveId(fat.pdfUrl)===f.fileId)||faturas.find(fat=>f.nome&&(fat.pdfUrl||'').toLowerCase().includes(f.nome.toLowerCase().replace(/\.pdf$/,'')))) : null;
-              const podeRecuperar = diag && (diag.motivo==='duplicado'||diag.motivo==='heuristica');
               return `<div class="fat-row" id="dpf_${f.fileId}" style="flex-direction:column;gap:4px;align-items:flex-start">
                 <div style="display:flex;align-items:center;gap:8px;width:100%">
                   <i class="fa fa-file-pdf" style="color:${jaLancado?'var(--muted)':'var(--red)'};font-size:16px;flex-shrink:0"></i>
@@ -4620,7 +4642,7 @@ async function abrirImportarTodasPastas(){
                   ${jaLancado
                     ? `<div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap">
                         <span class="badge b-ok" style="font-size:10px">Já lançado</span>
-                        ${podeRecuperar?`<button class="btn btn-sm btn-outline" style="color:var(--amber);font-size:10px;padding:2px 8px" onclick="desmarcarDriveDuplicado('${f.fileId}',()=>abrirImportarTodasPastas())"><i class="fa fa-undo"></i> Recuperar</button>`:''}
+                        <button class="btn btn-sm btn-outline" style="color:var(--amber);font-size:10px;padding:2px 8px" onclick="recuperarFicheiroDrive('${f.fileId}','${diag?diag.motivo:''}',()=>abrirImportarTodasPastas())"><i class="fa fa-undo"></i> Recuperar</button>
                       </div>`
                     : `<button class="btn btn-sm btn-gold" onclick="processarFicheiroDrive2('${f.fileId}','${f.nome}','${f.mime||'application/pdf'}','${f.url}')"><i class="fa fa-magic"></i> IA</button> <button class="btn btn-sm btn-outline" title="Marcar como já lançada sem usar a IA" onclick="marcarLancadaManual('${f.fileId}',this)"><i class="fa fa-check"></i> Já lançada</button>`
                   }
@@ -4639,7 +4661,7 @@ async function abrirImportarTodasPastas(){
           <span class="badge b-warn">${totalFich} por lançar</span>
           <span class="badge b-ok">${jaLancados} já lançados</span>
           <label style="font-size:11px;color:var(--muted);display:flex;align-items:center;gap:4px;cursor:pointer">
-            <input type="checkbox" id="chkMostrarLancados" onchange="mostrarJaLancados=this.checked;renderDriveLista()">
+            <input type="checkbox" id="chkMostrarLancados" onchange="window._mostrarJaLancados=this.checked;renderDriveLista()">
             Mostrar já lançados
           </label>
         </div>
