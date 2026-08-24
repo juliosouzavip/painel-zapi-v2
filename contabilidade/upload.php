@@ -282,13 +282,14 @@ if ($action === 'gas') {
         return json_last_error() === JSON_ERROR_NONE;
     };
 
-    // Ações pesadas (varrem o Drive inteiro) precisam de mais tempo:
-    // 1 tentativa de 100s em vez de 2 de 45s que estouram a meio.
+    // Ações pesadas (varrem o Drive inteiro) precisam de mais tempo.
+    // set_time_limit extra garante que o PHP não corta antes do cURL.
     $acoesPesadas = ['listarTodasFaturasDrive', 'sincronizarDrive', 'listarFaturasDrive', 'listarLixeira', 'restaurarLixeira'];
     $acaoGas = $data['action'] ?? '';
 
     if (in_array($acaoGas, $acoesPesadas, true)) {
-        $r = $chamarGAS($data, 100);
+        set_time_limit(360); // deixa o PHP aguardar até 6 min pela resposta do GAS
+        $r = $chamarGAS($data, 300); // 5 minutos — tempo máximo do Apps Script
         if ($r['err'] || !$respostaValida($r['resp'])) {
             registarErro('GAS ação pesada (' . $acaoGas . ') falhou: ' . $r['err']);
         }

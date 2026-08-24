@@ -4574,7 +4574,7 @@ async function abrirPastaEspecifica(trimestre, mes){
 async function abrirImportarTodasPastas(){
   const panel=document.getElementById('importarDrivePanel');
   panel.style.display='block';
-  panel.innerHTML='<div class="card"><div class="spin-wrap" style="display:block"><div class="spin"></div><p style="font-size:13px;color:var(--muted)">A varrer todas as pastas do Drive...</p></div></div>';
+  panel.innerHTML='<div class="card"><div class="spin-wrap" style="display:block"><div class="spin"></div><p style="font-size:13px;color:var(--muted)">A varrer todas as pastas do Drive…<br><span style="font-size:11px;opacity:.7">Pode demorar 1-3 minutos. Aguarda sem fechar a página.</span></p></div></div>';
   window._driveCache = []; // sempre busca dados frescos
 
   try {
