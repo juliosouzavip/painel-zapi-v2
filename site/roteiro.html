@@ -65,7 +65,8 @@ body{font-family:'Lato',system-ui,sans-serif;background:var(--bg);color:var(--in
 .svc-type{font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--ink-2);margin-bottom:3px}
 .svc-name{font-size:15px;font-weight:700;color:var(--ink);line-height:1.3;margin-bottom:8px}
 .svc-meta{display:flex;flex-wrap:wrap;gap:6px 14px;margin-bottom:7px}
-.svc-mi{font-size:12px;color:var(--ink-2);display:flex;align-items:center;gap:4px}
+.svc-mi{font-size:12px;color:var(--ink-2);display:flex;align-items:baseline;gap:6px}
+.svc-mi b{font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--gilt)}
 .svc-desc{font-size:13px;color:var(--ink);line-height:1.65}
 .svc-obs{margin-top:8px;font-size:12px;color:#8B6914;background:rgba(184,148,72,.1);border-radius:4px;padding:6px 10px;border-left:2px solid var(--gilt);line-height:1.5}
 
@@ -81,7 +82,7 @@ body{font-family:'Lato',system-ui,sans-serif;background:var(--bg);color:var(--in
 
 /* STATE SCREENS */
 .state-box{padding:48px 24px;text-align:center}
-.state-icon{font-size:54px;margin-bottom:18px}
+.state-ring{width:64px;height:64px;border-radius:50%;border:2px solid color-mix(in srgb,var(--green) 40%,transparent);background:color-mix(in srgb,var(--green) 8%,transparent);color:var(--green);display:flex;align-items:center;justify-content:center;margin:0 auto 18px;font-size:28px;font-weight:700}
 .state-box h2{font-family:'Playfair Display',Georgia,serif;font-size:22px;font-weight:600;margin-bottom:8px}
 .state-box p{font-size:14px;color:var(--ink-2);line-height:1.7}
 .state-box a{color:var(--gilt);text-decoration:none}
@@ -105,14 +106,14 @@ const CO = 'VIP Turismo Paris';
 
 /* ── TIPOS DE SERVIÇO ── */
 const T = {
-  voo:         {l:'Voo',         e:'✈️', c:'#5470C6'},
-  transfer:    {l:'Transfer',    e:'🚗', c:'#4E9F7B'},
-  hotel:       {l:'Hotel',       e:'🏨', c:'#8B5CF6'},
-  tour:        {l:'Passeio',     e:'🗼', c:'#D97706'},
-  restaurante: {l:'Restaurante', e:'🍽️', c:'#DC4444'},
-  ingresso:    {l:'Ingresso',    e:'🎟️', c:'#0891B2'},
-  cruzeiro:    {l:'Cruzeiro',    e:'🛥️', c:'#2563EB'},
-  outro:       {l:'Serviço',     e:'📋', c:'#6B7280'},
+  voo:         {l:'Voo',         c:'#5470C6'},
+  transfer:    {l:'Transfer',    c:'#4E9F7B'},
+  hotel:       {l:'Hotel',       c:'#8B5CF6'},
+  tour:        {l:'Passeio',     c:'#D97706'},
+  restaurante: {l:'Restaurante', c:'#DC4444'},
+  ingresso:    {l:'Ingresso',    c:'#0891B2'},
+  cruzeiro:    {l:'Cruzeiro',    c:'#2563EB'},
+  outro:       {l:'Serviço',     c:'#6B7280'},
 };
 
 /* ── DADOS DE DEMONSTRAÇÃO (apague ou substitua pelo link real) ── */
@@ -155,12 +156,12 @@ function card(s){
       <div class="svc-type">${t.l}</div>
       <div class="svc-name">${esc(s.nome)}</div>
       ${(s.hora||s.local||s.valor)?`<div class="svc-meta">
-        ${s.hora?`<span class="svc-mi">🕐 ${esc(s.hora)}</span>`:''}
-        ${s.local?`<span class="svc-mi">📍 ${esc(s.local)}</span>`:''}
-        ${s.valor?`<span class="svc-mi">💰 ${esc(s.valor)}</span>`:''}
+        ${s.hora?`<span class="svc-mi"><b>Horário</b> ${esc(s.hora)}</span>`:''}
+        ${s.local?`<span class="svc-mi"><b>Local</b> ${esc(s.local)}</span>`:''}
+        ${s.valor?`<span class="svc-mi"><b>Valor</b> ${esc(s.valor)}</span>`:''}
       </div>`:''}
       ${s.desc?`<div class="svc-desc">${esc(s.desc)}</div>`:''}
-      ${s.obs?`<div class="svc-obs">ℹ️ ${esc(s.obs)}</div>`:''}
+      ${s.obs?`<div class="svc-obs">${esc(s.obs)}</div>`:''}
     </div>
   </div>`;
 }
@@ -169,7 +170,7 @@ function card(s){
 function render(d){
   const conf=d.status==='confirmado'||!!localStorage.getItem(ck(d.id||''));
   const exp=d.exp&&new Date(d.exp)<new Date();
-  const pill=conf?`<span class="pill pill-conf">✓ Confirmado</span>`:exp?`<span class="pill pill-exp">Expirado</span>`:`<span class="pill pill-pend">Aguardando confirmação</span>`;
+  const pill=conf?`<span class="pill pill-conf">Confirmado</span>`:exp?`<span class="pill pill-exp">Expirado</span>`:`<span class="pill pill-pend">Aguardando confirmação</span>`;
   const ref=(d.id||'').slice(-6).toUpperCase();
   const wpDvd=wp(`Olá! Tenho dúvidas sobre meu roteiro "${d.titulo||''}"${ref?` (ref. ${ref})`:''}.`);
 
@@ -181,19 +182,19 @@ function render(d){
 
   let action;
   if(conf){
-    action=`<div class="state-box"><div class="state-icon">✅</div><h2>Roteiro confirmado</h2><p>Você já confirmou este roteiro.<br>Nossa equipe está cuidando de tudo para você.<br><br><a href="${wpDvd}">Fale conosco em caso de dúvidas →</a></p></div>`;
+    action=`<div class="state-box"><div class="state-ring">✓</div><h2>Roteiro confirmado</h2><p>Você já confirmou este roteiro.<br>Nossa equipe está cuidando de tudo para você.<br><br><a href="${wpDvd}">Fale conosco em caso de dúvidas →</a></p></div>`;
   }else if(exp){
-    action=`<div class="state-box"><div class="state-icon">⏰</div><h2 style="color:var(--red)">Link expirado</h2><p>Este roteiro não está mais disponível para confirmação.<br><a href="${wpDvd}">Entre em contato com sua consultora →</a></p></div>`;
+    action=`<div class="state-box"><h2 style="color:var(--red)">Link expirado</h2><p>Este roteiro não está mais disponível para confirmação.<br><a href="${wpDvd}">Entre em contato com sua consultora →</a></p></div>`;
   }else{
     action=`<div class="confirm-wrap">
       <p class="confirm-note">Ao confirmar, você declara estar de acordo com todos os serviços, datas, horários e reservas listados acima.</p>
       <button class="btn-confirm" id="btnC" onclick="confirmar(this,'${esc(d.id||'')}','${esc(d.titulo||'')}')">Confirmar todas as reservas</button>
-      <a href="${wpDvd}" class="btn-wp">💬 Falar com a consultora</a>
+      <a href="${wpDvd}" class="btn-wp">Falar com a consultora no WhatsApp</a>
     </div>`;
   }
 
   document.getElementById('page').innerHTML=`
-    <header class="site-hdr"><span class="brand">${CO}</span><span class="lock">🔒 Seguro</span></header>
+    <header class="site-hdr"><span class="brand">${CO}</span><span class="lock">Conexão segura</span></header>
     <div class="title-block">
       <div class="ref-lbl">Roteiro Personalizado${ref?` · Ref. ${ref}`:''}</div>
       <h1 class="client-name">${esc(d.cliente?.nome||'Cliente')}</h1>
@@ -222,7 +223,7 @@ function confirmar(btn,id,titulo){
   const hash=location.hash.slice(1);
   const d=hash?dec(hash):DEMO;
   if(!d){
-    document.getElementById('page').innerHTML=`<div class="state-box" style="min-height:70vh;display:flex;flex-direction:column;align-items:center;justify-content:center"><div class="state-icon">🔍</div><h2>Roteiro não encontrado</h2><p>Verifique o link ou entre em contato com sua consultora.</p></div>`;
+    document.getElementById('page').innerHTML=`<div class="state-box" style="min-height:70vh;display:flex;flex-direction:column;align-items:center;justify-content:center"><h2>Roteiro não encontrado</h2><p>Verifique o link ou entre em contato com sua consultora.</p></div>`;
     return;
   }
   render(d);

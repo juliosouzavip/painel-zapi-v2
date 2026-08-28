@@ -135,7 +135,7 @@ input[type="date"],input[type="time"]{color-scheme:dark}
     <div class="nav-brand">VIP Turismo Paris</div>
     <div class="nav-title">Gerador de Roteiros</div>
   </div>
-  <button class="btn btn-out btn-sm" onclick="loadTable()">↺ Atualizar lista</button>
+  <button class="btn btn-out btn-sm" onclick="loadTable()">Atualizar lista</button>
 </nav>
 
 <div class="wrap">
@@ -148,7 +148,7 @@ input[type="date"],input[type="time"]{color-scheme:dark}
       <label>Chave API Anthropic
         <div class="key-wrap">
           <input id="apiKey" type="password" placeholder="sk-ant-api03-..." autocomplete="off">
-          <button class="key-eye" onclick="toggleKey()" title="Mostrar/ocultar chave">👁</button>
+          <button class="key-eye" onclick="toggleKey()" title="Mostrar/ocultar chave">ver</button>
         </div>
       </label>
       <label>Voucher PDF<input id="voucherFile" type="file" accept=".pdf"></label>
@@ -184,20 +184,20 @@ input[type="date"],input[type="time"]{color-scheme:dark}
     <button class="btn btn-out" onclick="addSvc()">+ Adicionar serviço</button>
 
     <div style="margin-top:22px;display:flex;gap:10px;flex-wrap:wrap">
-      <button class="btn btn-gilt" id="btnGer" onclick="gerar()">🚀 Gerar Roteiro</button>
+      <button class="btn btn-gilt" id="btnGer" onclick="gerar()">Gerar Roteiro</button>
       <button class="btn btn-out" onclick="limpar()">Limpar formulário</button>
     </div>
 
     <div id="result">
-      <h3>✅ Roteiro criado</h3>
+      <h3>Roteiro criado</h3>
       <p style="font-size:12px;color:var(--ink-2);margin-bottom:10px">Compartilhe este link com o cliente:</p>
       <div class="link-row">
         <span class="link-url" id="linkUrl"></span>
-        <button class="btn btn-out btn-sm" onclick="copiar()">📋 Copiar</button>
+        <button class="btn btn-out btn-sm" onclick="copiar()">Copiar</button>
       </div>
       <div class="result-btns">
-        <a class="btn btn-green btn-sm" id="btnWp" href="#" target="_blank">📱 Enviar WhatsApp</a>
-        <a class="btn btn-out btn-sm" id="btnVer" href="#" target="_blank">👁 Visualizar</a>
+        <a class="btn btn-green btn-sm" id="btnWp" href="#" target="_blank">Enviar por WhatsApp</a>
+        <a class="btn btn-out btn-sm" id="btnVer" href="#" target="_blank">Visualizar</a>
       </div>
     </div>
   </div>
@@ -224,14 +224,14 @@ const WP='33XXXXXXXXX';   // número WhatsApp da empresa sem + (ex: 33612345678)
 const BASE_URL='https://vipturismoparis.com'; // URL do seu site
 
 const TIPOS=[
-  {v:'transfer',   l:'🚗 Transfer'},
-  {v:'voo',        l:'✈️ Voo'},
-  {v:'hotel',      l:'🏨 Hotel'},
-  {v:'tour',       l:'🗼 Passeio / Tour'},
-  {v:'restaurante',l:'🍽️ Restaurante'},
-  {v:'ingresso',   l:'🎟️ Ingresso / Atração'},
-  {v:'cruzeiro',   l:'🛥️ Cruzeiro'},
-  {v:'outro',      l:'📋 Outro'},
+  {v:'transfer',   l:'Transfer'},
+  {v:'voo',        l:'Voo'},
+  {v:'hotel',      l:'Hotel'},
+  {v:'tour',       l:'Passeio / Tour'},
+  {v:'restaurante',l:'Restaurante'},
+  {v:'ingresso',   l:'Ingresso / Atração'},
+  {v:'cruzeiro',   l:'Cruzeiro'},
+  {v:'outro',      l:'Outro'},
 ];
 
 /* ── AI IMPORT ── */
@@ -246,8 +246,8 @@ async function importVoucher(){
   const status=document.getElementById('aiStatus');
   const btn=document.getElementById('btnAI');
   status.className='ai-status';
-  if(!key){toast('Informe a chave API Anthropic.',false);status.className='ai-status err';status.textContent='⚠ Chave API é obrigatória.';return;}
-  if(!file){toast('Selecione um arquivo PDF.',false);status.className='ai-status err';status.textContent='⚠ Selecione o voucher em PDF.';return;}
+  if(!key){toast('Informe a chave API Anthropic.',false);status.className='ai-status err';status.textContent='Chave API é obrigatória.';return;}
+  if(!file){toast('Selecione um arquivo PDF.',false);status.className='ai-status err';status.textContent='Selecione o voucher em PDF.';return;}
   try{localStorage.setItem('vip_apikey',key);}catch(e){}
   btn.disabled=true;btn.innerHTML='<span class="spin"></span> Analisando...';
   status.textContent='Lendo arquivo...';
@@ -324,12 +324,12 @@ Campos opcionais (deixe vazios se não encontrar). Para "tipo", use "transfer" p
     }
     const n=parsed.svcs?.length||0;
     status.className='ai-status ok';
-    status.textContent=`✅ ${n} serviço${n!==1?'s':''} importado${n!==1?'s':''} com sucesso!`;
+    status.textContent=`${n} serviço${n!==1?'s':''} importado${n!==1?'s':''} com sucesso!`;
     toast('Formulário preenchido pela IA!');
     document.getElementById('svcsBox').scrollIntoView({behavior:'smooth',block:'start'});
   }catch(e){
     status.className='ai-status err';
-    status.textContent=`❌ ${e.message}`;
+    status.textContent=`Erro: ${e.message}`;
     toast('Erro ao analisar voucher.',false);
   }finally{
     btn.disabled=false;btn.innerHTML='✦ Analisar com IA';
@@ -424,7 +424,7 @@ function gerar(){
   }catch(e){}
 
   toast('Roteiro gerado!');
-  btn.disabled=false;btn.innerHTML='🚀 Gerar Roteiro';
+  btn.disabled=false;btn.innerHTML='Gerar Roteiro';
   loadTable();
 }
 
@@ -452,11 +452,11 @@ function loadTable(){
     tbl.innerHTML=list.map(r=>`<tr>
       <td>${esc(r.cliente||'—')}</td>
       <td>${esc(r.titulo||'—')}</td>
-      <td><span class="badge ${r.status==='confirmado'?'b-conf':'b-pend'}">${r.status==='confirmado'?'✓ Confirmado':'⏳ Pendente'}</span></td>
+      <td><span class="badge ${r.status==='confirmado'?'b-conf':'b-pend'}">${r.status==='confirmado'?'Confirmado':'Pendente'}</span></td>
       <td>${fmtDate(r.criadoEm)}</td>
       <td style="white-space:nowrap">
-        <a href="${esc(r.link)}" target="_blank" class="btn btn-out btn-sm" style="text-decoration:none">🔗 Abrir</a>
-        <button class="btn btn-out btn-sm" style="margin-left:4px" onclick="navigator.clipboard.writeText('${esc(r.link)}').then(()=>toast('Copiado!'))">📋</button>
+        <a href="${esc(r.link)}" target="_blank" class="btn btn-out btn-sm" style="text-decoration:none">Abrir</a>
+        <button class="btn btn-out btn-sm" style="margin-left:4px" onclick="navigator.clipboard.writeText('${esc(r.link)}').then(()=>toast('Copiado!'))">Copiar</button>
       </td>
     </tr>`).join('');
   }catch(e){tbl.innerHTML='<tr class="empty-row"><td colspan="5">Erro ao carregar.</td></tr>';}

@@ -34,7 +34,7 @@ body{font-family:'Lato',system-ui,sans-serif;background:var(--bg);color:var(--in
 
 /* SUCCESS HERO */
 .success-hero{padding:40px 24px 32px;text-align:center;border-bottom:1px solid var(--border)}
-.check-ring{width:72px;height:72px;border-radius:50%;border:2px solid color-mix(in srgb,var(--gilt) 35%,transparent);background:color-mix(in srgb,var(--gilt) 10%,transparent);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:32px;animation:pop .5s cubic-bezier(.34,1.56,.64,1)}
+.check-ring{width:72px;height:72px;border-radius:50%;border:2px solid color-mix(in srgb,var(--gilt) 35%,transparent);background:color-mix(in srgb,var(--gilt) 10%,transparent);color:var(--gilt);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:32px;font-weight:700;animation:pop .5s cubic-bezier(.34,1.56,.64,1)}
 @keyframes pop{from{transform:scale(.3);opacity:0}to{transform:scale(1);opacity:1}}
 .hero-title{font-family:'Playfair Display',Georgia,serif;font-size:24px;font-weight:600;line-height:1.2;text-wrap:balance;margin-bottom:8px}
 .hero-sub{font-size:14px;color:var(--ink-2);line-height:1.7;margin-bottom:16px}
@@ -59,7 +59,8 @@ body{font-family:'Lato',system-ui,sans-serif;background:var(--bg);color:var(--in
 .svc-type{font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--ink-2);margin-bottom:2px}
 .svc-name{font-size:14px;font-weight:700;color:var(--ink);line-height:1.3;margin-bottom:7px}
 .svc-meta{display:flex;flex-wrap:wrap;gap:5px 12px;margin-bottom:6px}
-.svc-mi{font-size:12px;color:var(--ink-2);display:flex;align-items:center;gap:4px}
+.svc-mi{font-size:12px;color:var(--ink-2);display:flex;align-items:baseline;gap:6px}
+.svc-mi b{font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--gilt)}
 .svc-desc{font-size:13px;color:var(--ink);line-height:1.6}
 .svc-obs{margin-top:7px;font-size:12px;color:#8B6914;background:rgba(184,148,72,.1);border-radius:4px;padding:6px 10px;border-left:2px solid var(--gilt);line-height:1.5}
 
@@ -80,8 +81,10 @@ body{font-family:'Lato',system-ui,sans-serif;background:var(--bg);color:var(--in
 /* UPSELL CARD — layout horizontal, mais detalhado */
 .u-card{background:var(--surface);border-radius:10px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06),0 0 0 1px var(--border)}
 .u-top{display:flex;gap:0}
-.u-icon-col{width:72px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:32px}
-.u-main{padding:14px 16px 0 8px;flex:1;min-width:0}
+.u-strip{width:3px;flex-shrink:0}
+.u-arr{display:flex;align-items:center;padding:0 14px;flex-shrink:0;color:var(--ink-2);font-size:20px}
+.u-cat{font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--ink-2);margin-bottom:3px}
+.u-main{padding:14px 8px 14px 16px;flex:1;min-width:0}
 .u-name{font-size:15px;font-weight:700;color:var(--ink);margin-bottom:4px;line-height:1.3}
 .u-desc{font-size:13px;color:var(--ink-2);line-height:1.5;margin-bottom:6px}
 .u-price{font-size:12px;font-weight:700;color:var(--gilt);font-variant-numeric:tabular-nums}
@@ -121,7 +124,7 @@ footer strong{color:var(--gilt);font-size:12px}
 @keyframes mpop{from{transform:scale(.92);opacity:0}to{transform:scale(1);opacity:1}}
 .modal-head{padding:20px 20px 16px;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--surface);z-index:1}
 .modal-icon-name{display:flex;align-items:center;gap:12px}
-.modal-icon{font-size:30px;flex-shrink:0}
+.modal-cat{font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--ink-2);margin-bottom:3px}
 .modal-name{font-family:'Playfair Display',Georgia,serif;font-size:18px;font-weight:600;color:var(--ink);line-height:1.3}
 .modal-close{background:none;border:none;font-size:24px;cursor:pointer;color:var(--ink-2);padding:0;line-height:1;flex-shrink:0;margin-top:-2px}
 .modal-close:hover{color:var(--ink)}
@@ -141,7 +144,7 @@ footer strong{color:var(--gilt);font-size:12px}
 </head>
 <body>
 <div class="page">
-  <header class="site-hdr"><span class="brand">VIP Turismo Paris</span><span class="lock">🔒 Seguro</span></header>
+  <header class="site-hdr"><span class="brand">VIP Turismo Paris</span><span class="lock">Conexão segura</span></header>
   <div id="main"><div style="display:flex;align-items:center;justify-content:center;min-height:60vh"><div style="width:28px;height:28px;border:2px solid var(--border);border-top-color:var(--gilt);border-radius:50%;animation:pop .7s linear infinite"></div></div></div>
 </div>
 <script>
@@ -149,61 +152,61 @@ const WP='33XXXXXXXXX'; // substitua pelo número WhatsApp da empresa
 const CO='VIP Turismo Paris';
 
 const T={
-  voo:         {l:'Voo',         e:'✈️', c:'#5470C6'},
-  transfer:    {l:'Transfer',    e:'🚗', c:'#4E9F7B'},
-  hotel:       {l:'Hotel',       e:'🏨', c:'#8B5CF6'},
-  tour:        {l:'Passeio',     e:'🗼', c:'#D97706'},
-  restaurante: {l:'Restaurante', e:'🍽️', c:'#DC4444'},
-  ingresso:    {l:'Ingresso',    e:'🎟️', c:'#0891B2'},
-  cruzeiro:    {l:'Cruzeiro',    e:'🛥️', c:'#2563EB'},
-  outro:       {l:'Serviço',     e:'📋', c:'#6B7280'},
+  voo:         {l:'Voo',         c:'#5470C6'},
+  transfer:    {l:'Transfer',    c:'#4E9F7B'},
+  hotel:       {l:'Hotel',       c:'#8B5CF6'},
+  tour:        {l:'Passeio',     c:'#D97706'},
+  restaurante: {l:'Restaurante', c:'#DC4444'},
+  ingresso:    {l:'Ingresso',    c:'#0891B2'},
+  cruzeiro:    {l:'Cruzeiro',    c:'#2563EB'},
+  outro:       {l:'Serviço',     c:'#6B7280'},
 };
 
 const UPSELLS=[
   {
-    e:'🛥️',c:'#006064',n:'Cruzeiro no Rio Sena',
+    c:'#006064',t:'Cruzeiro',n:'Cruzeiro no Rio Sena',
     d:'Passeio ao entardecer pelos monumentos de Paris',
     detalhes:['Duração: 1h30','Saídas às 17h30 e 20h00','Champagne e petiscos a bordo incluídos','Lugar reservado à boreste (melhor vista)','Narração dos pontos turísticos em português'],
     p:'A partir de €45/pp'
   },
   {
-    e:'🗼',c:'#e65100',n:'Torre Eiffel — Acesso VIP',
+    c:'#e65100',t:'Ingresso',n:'Torre Eiffel — Acesso VIP',
     d:'Entrada prioritária e subida ao topo com guia particular em português',
     detalhes:['Sem fila: acesso direto pelo elevador prioritário','Inclui subida ao 3° andar (276m de altura)','Guia particular em português por 1h30','Taça de champagne no topo inclusa','Máximo 8 pessoas por grupo'],
     p:'A partir de €85/pp'
   },
   {
-    e:'🏰',c:'#4a148c',n:'Versalhes — Dia Completo',
+    c:'#4a148c',t:'Passeio',n:'Versalhes — Dia Completo',
     d:'Palácio e jardins com transporte privativo e guia incluso',
     detalhes:['Transporte privativo ida e volta do hotel','Acesso prioritário ao Palácio (sem fila)','Guia em português por 3h','Jardins de Le Nôtre com as grandes fontes','Inclui almoço em restaurante típico local','Duração: dia inteiro (~8h)'],
     p:'A partir de €120/pp'
   },
   {
-    e:'🎨',c:'#1a237e',n:'Louvre — Visita Guiada VIP',
+    c:'#1a237e',t:'Passeio',n:'Louvre — Visita Guiada VIP',
     d:'Tour guiado com acesso preferencial às obras principais',
     detalhes:['Entrada sem fila pelo acesso profissional','Guia em português por 2h30','Roteiro focado: Mona Lisa, Vênus de Milo, Vitória de Samotrácia','Máximo 6 pessoas — experiência íntima','Fone de ouvido individual incluso'],
     p:'A partir de €75/pp'
   },
   {
-    e:'🍷',c:'#880e4f',n:'Tour Gastronômico',
+    c:'#880e4f',t:'Experiência',n:'Tour Gastronômico',
     d:'Degustação de vinhos e iguarias típicas parisienses',
     detalhes:['Visita a 3 produtores e adegas selecionados','Degustação de 8 vinhos com comentários do sommelier','Tábua de queijos e frios artesanais incluída','Macarons e doces parisienses na finalização','Duração: 3h — grupos de até 10 pessoas'],
     p:'A partir de €95/pp'
   },
   {
-    e:'🌹',c:'#b71c1c',n:'Jantar Romântico — Vista Torre Eiffel',
+    c:'#b71c1c',t:'Restaurante',n:'Jantar Romântico — Vista Torre Eiffel',
     d:'Jantar gourmet em restaurante com vista privilegiada para a Torre iluminada',
     detalhes:['Mesa reservada à janela com vista direta para a Torre Eiffel','Menu 4 tempos com harmonização de vinhos','Champagne de boas-vindas incluso','Serviço personalizado e atendimento em português','Reserva garantida — sem risco de indisponibilidade'],
     p:'A partir de €180/pp'
   },
   {
-    e:'🎭',c:'#c62828',n:'Moulin Rouge — Espetáculo',
+    c:'#c62828',t:'Espetáculo',n:'Moulin Rouge — Espetáculo',
     d:'O cabaret mais famoso do mundo com lugares na primeira fila',
     detalhes:['Lugar reservado na primeira fila (melhor visão do palco)','Champagne demi-bouteille por pessoa incluso','Espetáculo Féerie: 60 artistas, 1.000 fantasias','Duração do espetáculo: 1h55','Sessões às 21h e 23h — escolha no momento da reserva'],
     p:'A partir de €120/pp'
   },
   {
-    e:'🚖',c:'#1b5e20',n:'Transfer Executivo — Upgrade',
+    c:'#1b5e20',t:'Transfer',n:'Transfer Executivo — Upgrade',
     d:'Van de luxo com motorista exclusivo disponível 24h',
     detalhes:['Mercedes Viano ou similar — até 6 passageiros','Motorista bilíngue (francês/inglês)','Água mineral, Wi-Fi e carregadores a bordo','Disponível 24h — aeroporto, hotel e passeios','Pontualidade garantida: monitoramento de voo em tempo real'],
     p:'A partir de €95/trecho'
@@ -230,12 +233,12 @@ function svcCard(s){
       <div class="svc-type">${t.l}</div>
       <div class="svc-name">${esc(s.nome)}</div>
       ${(s.hora||s.local||s.valor)?`<div class="svc-meta">
-        ${s.hora?`<span class="svc-mi">🕐 ${esc(s.hora)}</span>`:''}
-        ${s.local?`<span class="svc-mi">📍 ${esc(s.local)}</span>`:''}
-        ${s.valor?`<span class="svc-mi">💰 ${esc(s.valor)}</span>`:''}
+        ${s.hora?`<span class="svc-mi"><b>Horário</b> ${esc(s.hora)}</span>`:''}
+        ${s.local?`<span class="svc-mi"><b>Local</b> ${esc(s.local)}</span>`:''}
+        ${s.valor?`<span class="svc-mi"><b>Valor</b> ${esc(s.valor)}</span>`:''}
       </div>`:''}
       ${s.desc?`<div class="svc-desc">${esc(s.desc)}</div>`:''}
-      ${s.obs?`<div class="svc-obs">ℹ️ ${esc(s.obs)}</div>`:''}
+      ${s.obs?`<div class="svc-obs">${esc(s.obs)}</div>`:''}
     </div>
   </div>`;
 }
@@ -245,13 +248,14 @@ let G_CTX={};
 function upsellCard(u,idx){
   return `<div class="u-card" onclick="openModal(${idx})" style="cursor:pointer">
     <div class="u-top">
-      <div class="u-icon-col" style="background:${u.c}18">${u.e}</div>
-      <div class="u-main" style="padding-bottom:14px">
+      <div class="u-strip" style="background:${u.c}"></div>
+      <div class="u-main">
+        <div class="u-cat">${esc(u.t)}</div>
         <div class="u-name">${esc(u.n)}</div>
         <div class="u-desc">${esc(u.d)}</div>
         <div class="u-price">${esc(u.p)}</div>
       </div>
-      <div style="display:flex;align-items:center;padding:0 14px 0 0;flex-shrink:0;color:var(--ink-2);font-size:18px">›</div>
+      <div class="u-arr">›</div>
     </div>
   </div>`;
 }
@@ -273,8 +277,10 @@ function openModal(idx){
   ov.innerHTML=`<div class="modal" role="dialog" aria-modal="true">
     <div class="modal-head">
       <div class="modal-icon-name">
-        <span class="modal-icon">${u.e}</span>
-        <span class="modal-name">${esc(u.n)}</span>
+        <div>
+          <div class="modal-cat">${esc(u.t)}</div>
+          <div class="modal-name">${esc(u.n)}</div>
+        </div>
       </div>
       <button class="modal-close" onclick="closeModal()" aria-label="Fechar">×</button>
     </div>
@@ -285,7 +291,7 @@ function openModal(idx){
       <div class="modal-items">${u.detalhes.map(d=>`<div class="modal-item">${esc(d)}</div>`).join('')}</div>
     </div>
     <div class="modal-foot">
-      <a class="modal-cta" href="${wp(wpMsg)}" target="_blank">💬 Solicitar este serviço</a>
+      <a class="modal-cta" href="${wp(wpMsg)}" target="_blank">Solicitar este serviço</a>
     </div>
   </div>`;
   document.body.appendChild(ov);
@@ -315,7 +321,7 @@ function init(){
     ${svcs.map(svcCard).join('')}`).join('');
   if(!svcsHtml)svcsHtml='<p style="color:var(--ink-2);font-size:13px">Nenhum serviço listado.</p>';
 
-  const wpConf=wp(`Olá! Me chamo ${nomeCompleto||'cliente'}, confirmo meu roteiro "${titulo}" (ref. ${ref}). Pode prosseguir com todas as reservas. ✅`);
+  const wpConf=wp(`Olá! Me chamo ${nomeCompleto||'cliente'}, confirmo meu roteiro "${titulo}" (ref. ${ref}). Pode prosseguir com todas as reservas.`);
   const wpDvd=wp(`Olá! Tenho dúvidas sobre meu roteiro confirmado "${titulo}" (ref. ${ref}).`);
 
   G_CTX={ref,titulo,nomeCliente:nomeCompleto};
@@ -323,7 +329,7 @@ function init(){
 
   document.getElementById('main').innerHTML=`
     <div class="success-hero">
-      <div class="check-ring">✅</div>
+      <div class="check-ring">✓</div>
       <h1 class="hero-title">Tudo confirmado,<br>${esc(nome)}!</h1>
       <p class="hero-sub">Suas reservas foram aceitas.<br>Nossa equipe já foi notificada e cuidará de cada detalhe.</p>
       <span class="conf-code">#${esc(ref)}</span>
@@ -345,7 +351,7 @@ function init(){
         <div class="step"><span class="step-n">1</span><span class="step-txt">Nossa equipe revisará suas reservas e enviará todos os vouchers por e-mail.</span></div>
         <div class="step"><span class="step-n">2</span><span class="step-txt">Sua consultora entrará em contato via WhatsApp para confirmar os últimos detalhes.</span></div>
         <div class="step"><span class="step-n">3</span><span class="step-txt">Você receberá os contatos de todos os fornecedores antes da viagem.</span></div>
-        <div class="step"><span class="step-n">4</span><span class="step-txt">Aproveite cada momento — cuidamos de tudo para você. 🥂</span></div>
+        <div class="step"><span class="step-n">4</span><span class="step-txt">Aproveite cada momento — cuidamos de tudo para você.</span></div>
       </div>
     </div>
 
@@ -361,7 +367,7 @@ function init(){
     <div class="cta-bottom">
       <h3>Ficou com dúvidas?</h3>
       <p>Sua consultora está disponível para ajudar com qualquer detalhe da sua viagem em Paris.</p>
-      <a href="${wpConf}" class="btn-wp" target="_blank">💬 Notificar consultora no WhatsApp</a>
+      <a href="${wpConf}" class="btn-wp" target="_blank">Notificar consultora no WhatsApp</a>
     </div>
 
     <footer><strong>${CO}</strong><br>info@vipturismoparis.com</footer>`;
