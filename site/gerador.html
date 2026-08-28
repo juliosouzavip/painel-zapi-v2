@@ -98,6 +98,24 @@ tr:hover td{background:rgba(255,255,255,.02)}
 .d-txt{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink-2)}
 
 @media(max-width:540px){.r2,.r3{grid-template-columns:1fr}}
+
+/* AI IMPORT */
+.ai-sec{border-color:rgba(201,169,110,.35)!important}
+.ai-bar{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.ai-badge{font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;background:rgba(201,169,110,.15);color:var(--gilt);border:1px solid rgba(201,169,110,.3);border-radius:12px;padding:3px 10px}
+.ai-tip{font-size:12px;color:var(--ink-2);line-height:1.6;margin-bottom:14px}
+.key-wrap{position:relative}
+.key-wrap input{padding-right:38px}
+.key-eye{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--ink-2);cursor:pointer;font-size:14px;line-height:1;padding:4px}
+input[type="file"]{cursor:pointer}
+input[type="file"]::file-selector-button{background:var(--edge);border:none;border-radius:4px;color:var(--ink);padding:4px 10px;font-size:12px;cursor:pointer;font-family:inherit;margin-right:8px}
+input[type="file"]::file-selector-button:hover{background:rgba(201,169,110,.2)}
+.ai-status{margin-top:10px;font-size:12px;min-height:18px;line-height:1.5}
+.ai-status.ok{color:var(--green)}
+.ai-status.err{color:var(--red)}
+
+/* DATE/TIME pickers */
+input[type="date"],input[type="time"]{color-scheme:dark}
 </style>
 </head>
 <body>
@@ -121,6 +139,23 @@ tr:hover td{background:rgba(255,255,255,.02)}
 </nav>
 
 <div class="wrap">
+
+  <!-- AI IMPORT -->
+  <div class="sec ai-sec">
+    <div class="ai-bar"><div class="sec-hdr" style="margin:0;padding:0;border:none">Importar Voucher</div><span class="ai-badge">✦ IA</span></div>
+    <p class="ai-tip">Faça upload de um voucher em PDF e a IA preencherá o formulário automaticamente com todos os dados do cliente e serviços.</p>
+    <div class="row r2">
+      <label>Chave API Anthropic
+        <div class="key-wrap">
+          <input id="apiKey" type="password" placeholder="sk-ant-api03-..." autocomplete="off">
+          <button class="key-eye" onclick="toggleKey()" title="Mostrar/ocultar chave">👁</button>
+        </div>
+      </label>
+      <label>Voucher PDF<input id="voucherFile" type="file" accept=".pdf"></label>
+    </div>
+    <button class="btn btn-gilt" id="btnAI" onclick="importVoucher()">✦ Analisar com IA</button>
+    <div class="ai-status" id="aiStatus"></div>
+  </div>
 
   <!-- FORM -->
   <div class="sec">
@@ -199,6 +234,108 @@ const TIPOS=[
   {v:'outro',      l:'📋 Outro'},
 ];
 
+/* ── AI IMPORT ── */
+function toggleKey(){
+  const i=document.getElementById('apiKey');
+  i.type=i.type==='password'?'text':'password';
+}
+
+async function importVoucher(){
+  const key=document.getElementById('apiKey').value.trim();
+  const file=document.getElementById('voucherFile').files[0];
+  const status=document.getElementById('aiStatus');
+  const btn=document.getElementById('btnAI');
+  status.className='ai-status';
+  if(!key){toast('Informe a chave API Anthropic.',false);status.className='ai-status err';status.textContent='⚠ Chave API é obrigatória.';return;}
+  if(!file){toast('Selecione um arquivo PDF.',false);status.className='ai-status err';status.textContent='⚠ Selecione o voucher em PDF.';return;}
+  try{localStorage.setItem('vip_apikey',key);}catch(e){}
+  btn.disabled=true;btn.innerHTML='<span class="spin"></span> Analisando...';
+  status.textContent='Lendo arquivo...';
+
+  try{
+    const b64=await new Promise((res,rej)=>{
+      const r=new FileReader();
+      r.onload=e=>res(e.target.result.split(',')[1]);
+      r.onerror=rej;
+      r.readAsDataURL(file);
+    });
+    status.textContent='Enviando para Claude...';
+
+    const prompt=`Analise este voucher de turismo e extraia os dados retornando APENAS um objeto JSON válido, sem markdown, sem explicações, sem comentários. Use exatamente este schema:
+
+{
+  "cliente": {"nome":"","telefone":"","email":""},
+  "titulo": "título curto e descritivo da viagem (ex: Transfer Zurique / St. Moritz — Jan 2027)",
+  "svcs": [
+    {
+      "tipo": "um de: transfer, voo, hotel, tour, restaurante, ingresso, cruzeiro, outro",
+      "nome": "nome do serviço (ex: Transfer In — Aeroporto Zurique → St. Moritz)",
+      "data": "YYYY-MM-DD",
+      "hora": "HH:MM",
+      "local": "local de partida ou endereço",
+      "desc": "descrição completa: detalhes, voo, bagagem, pickup, dropoff, passageiros",
+      "obs": "observações importantes para o cliente",
+      "valor": "valor com moeda ex: €890,00"
+    }
+  ]
+}
+
+Campos opcionais (deixe vazios se não encontrar). Para "tipo", use "transfer" para transfers de aeroporto e hotel.`;
+
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{
+        'x-api-key':key,
+        'anthropic-version':'2023-06-01',
+        'content-type':'application/json',
+        'anthropic-dangerous-direct-browser-access':'true',
+      },
+      body:JSON.stringify({
+        model:'claude-opus-5',
+        max_tokens:2048,
+        messages:[{role:'user',content:[
+          {type:'document',source:{type:'base64',media_type:'application/pdf',data:b64}},
+          {type:'text',text:prompt}
+        ]}]
+      })
+    });
+
+    if(!resp.ok){
+      const err=await resp.json().catch(()=>({}));
+      throw new Error(err.error?.message||`Erro HTTP ${resp.status}`);
+    }
+
+    const body=await resp.json();
+    const raw=body.content?.[0]?.text||'';
+    const m=raw.match(/\{[\s\S]*\}/);
+    if(!m)throw new Error('A IA não retornou um JSON válido. Tente novamente.');
+    const parsed=JSON.parse(m[0]);
+
+    if(parsed.cliente){
+      if(parsed.cliente.nome)document.getElementById('cliNome').value=parsed.cliente.nome;
+      if(parsed.cliente.telefone)document.getElementById('cliTel').value=parsed.cliente.telefone;
+      if(parsed.cliente.email)document.getElementById('cliEmail').value=parsed.cliente.email;
+    }
+    if(parsed.titulo)document.getElementById('titulo').value=parsed.titulo;
+    if(parsed.svcs?.length){
+      document.getElementById('svcsBox').innerHTML='';
+      count=0;
+      parsed.svcs.forEach(s=>addSvc(s));
+    }
+    const n=parsed.svcs?.length||0;
+    status.className='ai-status ok';
+    status.textContent=`✅ ${n} serviço${n!==1?'s':''} importado${n!==1?'s':''} com sucesso!`;
+    toast('Formulário preenchido pela IA!');
+    document.getElementById('svcsBox').scrollIntoView({behavior:'smooth',block:'start'});
+  }catch(e){
+    status.className='ai-status err';
+    status.textContent=`❌ ${e.message}`;
+    toast('Erro ao analisar voucher.',false);
+  }finally{
+    btn.disabled=false;btn.innerHTML='✦ Analisar com IA';
+  }
+}
+
 /* ── LOCK ── */
 function unlock(){
   const v=document.getElementById('lockInput').value;
@@ -227,8 +364,8 @@ function addSvc(data={}){
       <label>Nome<input data-f="nome" placeholder="Ex: Transfer CDG → Hotel" value="${esc(data.nome||'')}"></label>
     </div>
     <div class="row r3">
-      <label>Data<input data-f="data" placeholder="AAAA-MM-DD" value="${esc(data.data||'')}"></label>
-      <label>Horário<input data-f="hora" placeholder="14:30" value="${esc(data.hora||'')}"></label>
+      <label>Data<input data-f="data" type="date" value="${esc(data.data||'')}"></label>
+      <label>Horário<input data-f="hora" type="time" value="${esc(data.hora||'')}"></label>
       <label>Valor (opcional)<input data-f="valor" placeholder="€120/pp" value="${esc(data.valor||'')}"></label>
     </div>
     <div class="row">
@@ -336,8 +473,9 @@ function toast(msg,ok=true){
 /* ── INIT ── */
 addSvc();
 loadTable();
-// auto-focus password
 document.getElementById('lockInput').focus();
+// restore saved API key
+try{const k=localStorage.getItem('vip_apikey');if(k)document.getElementById('apiKey').value=k;}catch(e){}
 </script>
 </body>
 </html>
