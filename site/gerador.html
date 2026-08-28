@@ -434,7 +434,7 @@ async function finalizar(data,titulo,btn){
 
   if(codigo){
     data.id=codigo;
-    currentLink=`${BASE_URL}/roteiro.html?r=${codigo}`;
+    currentLink=`${BASE_URL}/r.php?r=${codigo}`;
     document.getElementById('linkAviso').textContent='';
   }else{
     currentLink=`${BASE_URL}/roteiro.html#${enc(data)}`;
@@ -479,7 +479,7 @@ function limpar(){
 function fmtDate(s){if(!s)return '—';try{return new Date(s).toLocaleDateString('pt-BR');}catch(e){return s;}}
 function linhas(list,online){
   return list.map(r=>{
-    const link=r.link||`${BASE_URL}/roteiro.html?r=${r.id}`;
+    const link=r.link||`${BASE_URL}/r.php?r=${r.id}`;
     const conf=r.status==='confirmado';
     return `<tr>
       <td>${esc(r.cliente||'—')}</td>
