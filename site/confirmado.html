@@ -78,28 +78,34 @@ body{font-family:'Lato',system-ui,sans-serif;background:var(--bg);color:var(--in
 .upsell-intro p{font-size:13px;color:var(--ink-2);line-height:1.6}
 .upsell-list{display:flex;flex-direction:column;gap:12px}
 
-/* UPSELL CARD — layout horizontal, mais detalhado */
-.u-card{background:var(--surface);border-radius:10px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06),0 0 0 1px var(--border)}
-.u-top{display:flex;gap:0}
-.u-strip{width:3px;flex-shrink:0}
-.u-arr{display:flex;align-items:center;padding:0 14px;flex-shrink:0;color:var(--ink-2);font-size:20px}
-.u-cat{font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--ink-2);margin-bottom:3px}
-.u-main{padding:14px 8px 14px 16px;flex:1;min-width:0}
-.u-name{font-size:15px;font-weight:700;color:var(--ink);margin-bottom:4px;line-height:1.3}
-.u-desc{font-size:13px;color:var(--ink-2);line-height:1.5;margin-bottom:6px}
-.u-price{font-size:12px;font-weight:700;color:var(--gilt);font-variant-numeric:tabular-nums}
-.u-toggle{width:100%;background:none;border:none;border-top:1px solid var(--border);padding:10px 16px;font-size:12px;font-weight:700;color:var(--ink-2);cursor:pointer;text-align:left;display:flex;justify-content:space-between;align-items:center;letter-spacing:.3px;transition:color .15s;margin-top:12px}
-.u-toggle:hover{color:var(--gilt)}
-.u-toggle .arr{transition:transform .2s;display:inline-block}
-.u-details{display:none;padding:12px 16px;border-top:1px solid var(--border);background:var(--tint)}
-.u-details.open{display:block}
-.u-detail-item{font-size:12px;color:var(--ink-2);line-height:1.7;display:flex;gap:7px}
-.u-detail-item::before{content:'✦';color:var(--gilt);flex-shrink:0;font-size:10px;margin-top:3px}
-.u-actions{padding:12px 16px;border-top:1px solid var(--border);display:flex;gap:8px}
-.u-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;background:var(--navy);color:var(--bg);border:none;border-radius:6px;padding:10px 12px;font-size:13px;font-weight:700;cursor:pointer;text-align:center;text-decoration:none;transition:opacity .2s;letter-spacing:.3px}
-.u-btn:hover{opacity:.85}
-@media(prefers-color-scheme:dark){:root:not([data-theme="light"]) .u-btn{background:var(--gilt);color:#151921}}
-:root[data-theme="dark"] .u-btn{background:var(--gilt);color:#151921}
+/* UPSELL CARD — banner com imagem */
+.u-card{background:var(--surface);border-radius:10px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06),0 0 0 1px var(--border);cursor:pointer;transition:box-shadow .25s,transform .2s;display:block;width:100%;text-align:left;border:none;padding:0;font-family:inherit;color:inherit}
+.u-card:hover{box-shadow:0 8px 26px rgba(0,0,0,.12),0 0 0 1px var(--border);transform:translateY(-2px)}
+.u-card:focus-visible{outline:2px solid var(--gilt);outline-offset:2px}
+
+/* banner: imagem sobre degradê de reserva */
+.u-banner,.modal-banner{background:
+  radial-gradient(120% 90% at 78% 8%,rgba(255,255,255,.22) 0%,rgba(255,255,255,0) 55%),
+  linear-gradient(140deg,color-mix(in srgb,var(--c) 88%,#fff) 0%,var(--c) 46%,color-mix(in srgb,var(--c) 40%,#000) 100%)}
+.u-banner{position:relative;aspect-ratio:16/7;overflow:hidden}
+.u-banner img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;transition:transform .5s ease}
+.u-card:hover .u-banner img{transform:scale(1.04)}
+.u-banner::after{content:'';position:absolute;inset:0;background:linear-gradient(to top,rgba(12,12,18,.78) 0%,rgba(12,12,18,.25) 45%,rgba(12,12,18,.05) 100%)}
+.u-cat{position:absolute;top:12px;left:14px;z-index:2;font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#fff;background:rgba(255,255,255,.16);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.22);border-radius:20px;padding:4px 11px}
+.u-name{position:absolute;left:14px;right:14px;bottom:11px;z-index:2;font-family:'Playfair Display',Georgia,serif;font-size:19px;font-weight:600;color:#fff;line-height:1.25;text-wrap:balance;text-shadow:0 1px 12px rgba(0,0,0,.4)}
+
+.u-body{padding:14px 16px}
+.u-desc{font-size:13px;color:var(--ink-2);line-height:1.55;margin-bottom:11px}
+.u-foot{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+.u-price{font-size:13px;font-weight:700;color:var(--gilt);font-variant-numeric:tabular-nums}
+.u-more{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--ink-2);white-space:nowrap;transition:color .2s}
+.u-card:hover .u-more{color:var(--gilt)}
+
+@media(prefers-reduced-motion:reduce){
+  .u-card,.u-banner img{transition:none}
+  .u-card:hover{transform:none}
+  .u-card:hover .u-banner img{transform:none}
+}
 
 /* CTA BOTTOM */
 .cta-bottom{margin:28px 24px 0;background:var(--navy);color:var(--bg);border-radius:10px;padding:26px 24px;text-align:center}
@@ -122,13 +128,15 @@ footer strong{color:var(--gilt);font-size:12px}
 @media(min-width:480px){.modal{border-radius:14px;animation:mpop .25s cubic-bezier(.34,1.2,.64,1)}}
 @keyframes mslide{from{transform:translateY(100%)}to{transform:translateY(0)}}
 @keyframes mpop{from{transform:scale(.92);opacity:0}to{transform:scale(1);opacity:1}}
-.modal-head{padding:20px 20px 16px;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--surface);z-index:1}
-.modal-icon-name{display:flex;align-items:center;gap:12px}
-.modal-cat{font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--ink-2);margin-bottom:3px}
-.modal-name{font-family:'Playfair Display',Georgia,serif;font-size:18px;font-weight:600;color:var(--ink);line-height:1.3}
-.modal-close{background:none;border:none;font-size:24px;cursor:pointer;color:var(--ink-2);padding:0;line-height:1;flex-shrink:0;margin-top:-2px}
-.modal-close:hover{color:var(--ink)}
-.modal-body{padding:18px 20px}
+/* banner do modal */
+.modal-banner{position:relative;aspect-ratio:16/7;overflow:hidden}
+.modal-banner img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+.modal-banner::after{content:'';position:absolute;inset:0;background:linear-gradient(to top,rgba(12,12,18,.8) 0%,rgba(12,12,18,.25) 50%,rgba(12,12,18,.1) 100%)}
+.modal-cat{position:absolute;top:14px;left:20px;z-index:2;font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#fff;background:rgba(255,255,255,.16);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.22);border-radius:20px;padding:4px 11px}
+.modal-name{position:absolute;left:20px;right:56px;bottom:14px;z-index:2;font-family:'Playfair Display',Georgia,serif;font-size:22px;font-weight:600;color:#fff;line-height:1.22;text-wrap:balance;text-shadow:0 1px 12px rgba(0,0,0,.45)}
+.modal-close{position:absolute;top:12px;right:12px;z-index:3;width:32px;height:32px;border-radius:50%;background:rgba(0,0,0,.4);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.2);color:#fff;font-size:20px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s}
+.modal-close:hover{background:rgba(0,0,0,.65)}
+.modal-body{padding:20px}
 .modal-desc{font-size:14px;color:var(--ink-2);line-height:1.65;margin-bottom:14px}
 .modal-price{display:inline-block;font-size:13px;font-weight:700;color:var(--gilt);background:color-mix(in srgb,var(--gilt) 10%,transparent);border-radius:4px;padding:4px 12px;margin-bottom:18px}
 .modal-inc-lbl{font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--ink-2);margin-bottom:10px}
@@ -164,49 +172,49 @@ const T={
 
 const UPSELLS=[
   {
-    c:'#006064',t:'Cruzeiro',n:'Cruzeiro no Rio Sena',
+    c:'#006064',t:'Cruzeiro',img:'img/cruzeiro-sena.jpg',n:'Cruzeiro no Rio Sena',
     d:'Passeio ao entardecer pelos monumentos de Paris',
     detalhes:['Duração: 1h30','Saídas às 17h30 e 20h00','Champagne e petiscos a bordo incluídos','Lugar reservado à boreste (melhor vista)','Narração dos pontos turísticos em português'],
     p:'A partir de €45/pp'
   },
   {
-    c:'#e65100',t:'Ingresso',n:'Torre Eiffel — Acesso VIP',
+    c:'#e65100',t:'Ingresso',img:'img/torre-eiffel.jpg',n:'Torre Eiffel — Acesso VIP',
     d:'Entrada prioritária e subida ao topo com guia particular em português',
     detalhes:['Sem fila: acesso direto pelo elevador prioritário','Inclui subida ao 3° andar (276m de altura)','Guia particular em português por 1h30','Taça de champagne no topo inclusa','Máximo 8 pessoas por grupo'],
     p:'A partir de €85/pp'
   },
   {
-    c:'#4a148c',t:'Passeio',n:'Versalhes — Dia Completo',
+    c:'#4a148c',t:'Passeio',img:'img/versalhes.jpg',n:'Versalhes — Dia Completo',
     d:'Palácio e jardins com transporte privativo e guia incluso',
     detalhes:['Transporte privativo ida e volta do hotel','Acesso prioritário ao Palácio (sem fila)','Guia em português por 3h','Jardins de Le Nôtre com as grandes fontes','Inclui almoço em restaurante típico local','Duração: dia inteiro (~8h)'],
     p:'A partir de €120/pp'
   },
   {
-    c:'#1a237e',t:'Passeio',n:'Louvre — Visita Guiada VIP',
+    c:'#1a237e',t:'Passeio',img:'img/louvre.jpg',n:'Louvre — Visita Guiada VIP',
     d:'Tour guiado com acesso preferencial às obras principais',
     detalhes:['Entrada sem fila pelo acesso profissional','Guia em português por 2h30','Roteiro focado: Mona Lisa, Vênus de Milo, Vitória de Samotrácia','Máximo 6 pessoas — experiência íntima','Fone de ouvido individual incluso'],
     p:'A partir de €75/pp'
   },
   {
-    c:'#880e4f',t:'Experiência',n:'Tour Gastronômico',
+    c:'#880e4f',t:'Experiência',img:'img/tour-gastronomico.jpg',n:'Tour Gastronômico',
     d:'Degustação de vinhos e iguarias típicas parisienses',
     detalhes:['Visita a 3 produtores e adegas selecionados','Degustação de 8 vinhos com comentários do sommelier','Tábua de queijos e frios artesanais incluída','Macarons e doces parisienses na finalização','Duração: 3h — grupos de até 10 pessoas'],
     p:'A partir de €95/pp'
   },
   {
-    c:'#b71c1c',t:'Restaurante',n:'Jantar Romântico — Vista Torre Eiffel',
+    c:'#b71c1c',t:'Restaurante',img:'img/jantar-romantico.jpg',n:'Jantar Romântico — Vista Torre Eiffel',
     d:'Jantar gourmet em restaurante com vista privilegiada para a Torre iluminada',
     detalhes:['Mesa reservada à janela com vista direta para a Torre Eiffel','Menu 4 tempos com harmonização de vinhos','Champagne de boas-vindas incluso','Serviço personalizado e atendimento em português','Reserva garantida — sem risco de indisponibilidade'],
     p:'A partir de €180/pp'
   },
   {
-    c:'#c62828',t:'Espetáculo',n:'Moulin Rouge — Espetáculo',
+    c:'#c62828',t:'Espetáculo',img:'img/moulin-rouge.jpg',n:'Moulin Rouge — Espetáculo',
     d:'O cabaret mais famoso do mundo com lugares na primeira fila',
     detalhes:['Lugar reservado na primeira fila (melhor visão do palco)','Champagne demi-bouteille por pessoa incluso','Espetáculo Féerie: 60 artistas, 1.000 fantasias','Duração do espetáculo: 1h55','Sessões às 21h e 23h — escolha no momento da reserva'],
     p:'A partir de €120/pp'
   },
   {
-    c:'#1b5e20',t:'Transfer',n:'Transfer Executivo — Upgrade',
+    c:'#1b5e20',t:'Transfer',img:'img/transfer-executivo.jpg',n:'Transfer Executivo — Upgrade',
     d:'Van de luxo com motorista exclusivo disponível 24h',
     detalhes:['Mercedes Viano ou similar — até 6 passageiros','Motorista bilíngue (francês/inglês)','Água mineral, Wi-Fi e carregadores a bordo','Disponível 24h — aeroporto, hotel e passeios','Pontualidade garantida: monitoramento de voo em tempo real'],
     p:'A partir de €95/trecho'
@@ -245,19 +253,25 @@ function svcCard(s){
 
 let G_CTX={};
 
-function upsellCard(u,idx){
-  return `<div class="u-card" onclick="openModal(${idx})" style="cursor:pointer">
-    <div class="u-top">
-      <div class="u-strip" style="background:${u.c}"></div>
-      <div class="u-main">
-        <div class="u-cat">${esc(u.t)}</div>
-        <div class="u-name">${esc(u.n)}</div>
-        <div class="u-desc">${esc(u.d)}</div>
-        <div class="u-price">${esc(u.p)}</div>
-      </div>
-      <div class="u-arr">›</div>
-    </div>
+function banner(u,cls){
+  return `<div class="${cls}" style="--c:${u.c}">
+    ${u.img?`<img src="${esc(u.img)}" alt="" loading="lazy" onerror="this.remove()">`:''}
+    <span class="${cls==='u-banner'?'u-cat':'modal-cat'}">${esc(u.t)}</span>
+    <div class="${cls==='u-banner'?'u-name':'modal-name'}">${esc(u.n)}</div>
   </div>`;
+}
+
+function upsellCard(u,idx){
+  return `<button class="u-card" type="button" onclick="openModal(${idx})">
+    ${banner(u,'u-banner')}
+    <div class="u-body">
+      <div class="u-desc">${esc(u.d)}</div>
+      <div class="u-foot">
+        <span class="u-price">${esc(u.p)}</span>
+        <span class="u-more">Ver detalhes</span>
+      </div>
+    </div>
+  </button>`;
 }
 
 function openModal(idx){
@@ -274,14 +288,9 @@ function openModal(idx){
   const ov=document.createElement('div');
   ov.className='modal-ov';ov.id='modal-ov';
   ov.addEventListener('click',e=>{if(e.target===ov)closeModal();});
-  ov.innerHTML=`<div class="modal" role="dialog" aria-modal="true">
-    <div class="modal-head">
-      <div class="modal-icon-name">
-        <div>
-          <div class="modal-cat">${esc(u.t)}</div>
-          <div class="modal-name">${esc(u.n)}</div>
-        </div>
-      </div>
+  ov.innerHTML=`<div class="modal" role="dialog" aria-modal="true" aria-label="${esc(u.n)}">
+    <div style="position:relative">
+      ${banner(u,'modal-banner')}
       <button class="modal-close" onclick="closeModal()" aria-label="Fechar">×</button>
     </div>
     <div class="modal-body">
