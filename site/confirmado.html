@@ -314,13 +314,25 @@ function closeModal(){
 }
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
 
-function init(){
-  const hash=location.hash.slice(1);
-  const d=hash?dec(hash):{};
+async function init(){
+  const codigo=new URLSearchParams(location.search).get('r');
+  let d={};
+
+  if(codigo){
+    try{
+      const r=await fetch(`api.php?acao=ler&id=${encodeURIComponent(codigo)}`);
+      const j=await r.json();
+      if(j.roteiro)d=j.roteiro;
+    }catch(e){/* mostra a página mesmo sem os detalhes */}
+  }else{
+    const hash=location.hash.slice(1);
+    if(hash)d=dec(hash)||{};
+  }
+
   const nome=(d.cliente?.nome||'').split(' ')[0]||'Cliente';
   const nomeCompleto=d.cliente?.nome||'';
   const titulo=d.titulo||'seu roteiro';
-  const ref=(d.id||'').slice(-6).toUpperCase()||'—';
+  const ref=codigo||(d.id||'').slice(-6).toUpperCase()||'—';
   const now=new Date().toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
 
   // itinerary summary

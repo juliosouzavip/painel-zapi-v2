@@ -191,6 +191,7 @@ input[type="date"],input[type="time"]{color-scheme:dark}
     <div id="result">
       <h3>Roteiro criado</h3>
       <p style="font-size:12px;color:var(--ink-2);margin-bottom:10px">Compartilhe este link com o cliente:</p>
+      <p id="linkAviso" style="font-size:12px;color:var(--amber);margin-bottom:10px;line-height:1.5"></p>
       <div class="link-row">
         <span class="link-url" id="linkUrl"></span>
         <button class="btn btn-out btn-sm" onclick="copiar()">Copiar</button>
@@ -204,7 +205,8 @@ input[type="date"],input[type="time"]{color-scheme:dark}
 
   <!-- LISTA -->
   <div class="sec">
-    <div class="sec-hdr">Roteiros Salvos (este navegador)</div>
+    <div class="sec-hdr">Roteiros</div>
+    <div id="tblFonte" style="font-size:11px;color:var(--ink-2);margin:-8px 0 14px;letter-spacing:.3px"></div>
     <div class="tbl-wrap">
       <table>
         <thead><tr><th>Cliente</th><th>Título</th><th>Status</th><th>Criado</th><th>Ações</th></tr></thead>
@@ -337,9 +339,14 @@ Campos opcionais (deixe vazios se não encontrar). Para "tipo", use "transfer" p
 }
 
 /* ── LOCK ── */
+let SENHA_ATIVA='';
 function unlock(){
   const v=document.getElementById('lockInput').value;
-  if(v===SENHA){document.getElementById('lockScreen').style.display='none';}
+  if(v===SENHA){
+    SENHA_ATIVA=v;
+    document.getElementById('lockScreen').style.display='none';
+    loadTable();
+  }
   else{document.getElementById('lockErr').textContent='Senha incorreta.';document.getElementById('lockInput').value='';}
 }
 
@@ -406,8 +413,34 @@ function gerar(){
     svcs:getSvcs(),
   };
 
-  const encoded=enc(data);
-  currentLink=`${BASE_URL}/roteiro.html#${encoded}`;
+  finalizar(data,titulo,btn);
+}
+
+/* Tenta gravar no servidor (link curto); se falhar, usa o link longo. */
+async function finalizar(data,titulo,btn){
+  let codigo='';
+  try{
+    const r=await fetch('api.php?acao=criar',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({senha:SENHA_ATIVA,roteiro:data}),
+    });
+    const j=await r.json();
+    if(r.ok&&j.id)codigo=j.id;
+    else if(j.erro)console.warn('api.php:',j.erro);
+  }catch(e){
+    console.warn('api.php indisponível, usando link longo.');
+  }
+
+  if(codigo){
+    data.id=codigo;
+    currentLink=`${BASE_URL}/roteiro.html?r=${codigo}`;
+    document.getElementById('linkAviso').textContent='';
+  }else{
+    currentLink=`${BASE_URL}/roteiro.html#${enc(data)}`;
+    document.getElementById('linkAviso').textContent='O api.php não respondeu — este link é longo. Envie o api.php para o servidor para gerar links curtos.';
+  }
+
   document.getElementById('linkUrl').textContent=currentLink;
   const cliTel=(data.cliente.telefone||'').replace(/\D/g,'');
   const wpMsg=encodeURIComponent(`Olá ${data.cliente.nome||''}! Seu roteiro personalizado está pronto. Acesse para visualizar todos os detalhes e confirmar suas reservas:\n\n${currentLink}`);
@@ -416,14 +449,14 @@ function gerar(){
   document.getElementById('result').style.display='block';
   document.getElementById('result').scrollIntoView({behavior:'smooth',block:'center'});
 
-  // save to localStorage
+  // cópia local de recurso
   try{
     const saved=JSON.parse(localStorage.getItem('vip_roteiros')||'[]');
-    saved.unshift({id,titulo,cliente:data.cliente.nome,status:'pendente',criadoEm:new Date().toISOString(),link:currentLink});
+    saved.unshift({id:data.id,titulo,cliente:data.cliente.nome,status:'pendente',criadoEm:new Date().toISOString(),link:currentLink});
     localStorage.setItem('vip_roteiros',JSON.stringify(saved.slice(0,50)));
   }catch(e){}
 
-  toast('Roteiro gerado!');
+  toast(codigo?`Roteiro gerado — código ${codigo}`:'Roteiro gerado (link longo).');
   btn.disabled=false;btn.innerHTML='Gerar Roteiro';
   loadTable();
 }
@@ -444,21 +477,53 @@ function limpar(){
 
 /* ── TABLE ── */
 function fmtDate(s){if(!s)return '—';try{return new Date(s).toLocaleDateString('pt-BR');}catch(e){return s;}}
-function loadTable(){
-  const tbl=document.getElementById('tbl');
-  try{
-    const list=JSON.parse(localStorage.getItem('vip_roteiros')||'[]');
-    if(!list.length){tbl.innerHTML='<tr class="empty-row"><td colspan="5">Nenhum roteiro salvo ainda.</td></tr>';return;}
-    tbl.innerHTML=list.map(r=>`<tr>
+function linhas(list,online){
+  return list.map(r=>{
+    const link=r.link||`${BASE_URL}/roteiro.html?r=${r.id}`;
+    const conf=r.status==='confirmado';
+    return `<tr>
       <td>${esc(r.cliente||'—')}</td>
       <td>${esc(r.titulo||'—')}</td>
-      <td><span class="badge ${r.status==='confirmado'?'b-conf':'b-pend'}">${r.status==='confirmado'?'Confirmado':'Pendente'}</span></td>
+      <td><span class="badge ${conf?'b-conf':'b-pend'}">${conf?'Confirmado':'Pendente'}</span>${conf&&r.confirmado?`<div style="font-size:10px;color:var(--ink-2);margin-top:3px">${fmtDate(r.confirmado)}</div>`:''}</td>
       <td>${fmtDate(r.criadoEm)}</td>
       <td style="white-space:nowrap">
-        <a href="${esc(r.link)}" target="_blank" class="btn btn-out btn-sm" style="text-decoration:none">Abrir</a>
-        <button class="btn btn-out btn-sm" style="margin-left:4px" onclick="navigator.clipboard.writeText('${esc(r.link)}').then(()=>toast('Copiado!'))">Copiar</button>
+        <a href="${esc(link)}" target="_blank" class="btn btn-out btn-sm" style="text-decoration:none">Abrir</a>
+        <button class="btn btn-out btn-sm" style="margin-left:4px" onclick="navigator.clipboard.writeText('${esc(link)}').then(()=>toast('Copiado!'))">Copiar</button>
       </td>
-    </tr>`).join('');
+    </tr>`;
+  }).join('');
+}
+
+async function loadTable(){
+  const tbl=document.getElementById('tbl');
+  const fonte=document.getElementById('tblFonte');
+
+  // 1) servidor — status real das confirmações
+  if(SENHA_ATIVA){
+    try{
+      const r=await fetch('api.php?acao=listar',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({senha:SENHA_ATIVA}),
+      });
+      const j=await r.json();
+      if(r.ok&&Array.isArray(j.roteiros)){
+        fonte.textContent='Sincronizado com o servidor';
+        tbl.innerHTML=j.roteiros.length
+          ? linhas(j.roteiros,true)
+          : '<tr class="empty-row"><td colspan="5">Nenhum roteiro criado ainda.</td></tr>';
+        return;
+      }
+    }catch(e){/* cai para o armazenamento local */}
+  }
+
+  // 2) armazenamento local deste navegador
+  fonte.textContent='Somente este navegador — api.php indisponível';
+  try{
+    const list=JSON.parse(localStorage.getItem('vip_roteiros')||'[]');
+    tbl.innerHTML=list.length
+      ? linhas(list,false)
+      : '<tr class="empty-row"><td colspan="5">Nenhum roteiro salvo ainda.</td></tr>';
   }catch(e){tbl.innerHTML='<tr class="empty-row"><td colspan="5">Erro ao carregar.</td></tr>';}
 }
 

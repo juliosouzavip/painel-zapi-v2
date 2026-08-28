@@ -211,19 +211,58 @@ function render(d){
 }
 
 /* ── CONFIRMAÇÃO ── */
-function confirmar(btn,id,titulo){
+async function confirmar(btn,id,titulo){
   btn.disabled=true;btn.textContent='Confirmando...';
   localStorage.setItem(ck(id),'1');
-  const hash=location.hash||'';
-  setTimeout(()=>{location.href='confirmado.html'+hash;},150);
+
+  // avisa o servidor quando o roteiro veio por código curto
+  if(CODIGO){
+    try{
+      await fetch('api.php?acao=confirmar',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({id:CODIGO}),
+      });
+    }catch(e){/* segue mesmo sem rede — a confirmação local vale */}
+    location.href='confirmado.html?r='+encodeURIComponent(CODIGO);
+    return;
+  }
+  location.href='confirmado.html'+(location.hash||'');
 }
 
 /* ── INIT ── */
-(function(){
+let CODIGO='';
+
+function erroPagina(titulo,texto){
+  document.getElementById('page').innerHTML=`<div class="state-box" style="min-height:70vh;display:flex;flex-direction:column;align-items:center;justify-content:center"><h2>${titulo}</h2><p>${texto}</p></div>`;
+}
+
+(async function(){
+  const codigo=new URLSearchParams(location.search).get('r');
+
+  // 1) link curto: busca o roteiro no servidor
+  if(codigo){
+    CODIGO=codigo;
+    try{
+      const r=await fetch(`api.php?acao=ler&id=${encodeURIComponent(codigo)}`);
+      const j=await r.json();
+      if(!r.ok||!j.roteiro){
+        erroPagina('Roteiro não encontrado','Verifique o link ou entre em contato com sua consultora.');
+        return;
+      }
+      if(j.status==='confirmado')j.roteiro.status='confirmado';
+      render(j.roteiro);
+    }catch(e){
+      erroPagina('Não foi possível carregar','Verifique sua conexão e tente novamente.');
+    }
+    return;
+  }
+
+  // 2) link longo (compatibilidade) ou demonstração
   const hash=location.hash.slice(1);
   const d=hash?dec(hash):DEMO;
   if(!d){
-    document.getElementById('page').innerHTML=`<div class="state-box" style="min-height:70vh;display:flex;flex-direction:column;align-items:center;justify-content:center"><h2>Roteiro não encontrado</h2><p>Verifique o link ou entre em contato com sua consultora.</p></div>`;
+    erroPagina('Roteiro não encontrado','Verifique o link ou entre em contato com sua consultora.');
     return;
   }
   render(d);
