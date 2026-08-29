@@ -86,28 +86,55 @@ if ($html === false) {
 }
 
 $url = base() . '/r.php?r=' . rawurlencode($codigo);
-$img = base() . '/' . IMAGEM;
 
-$tags = implode("\n", [
+/* O WhatsApp e o Facebook guardam a imagem em cache pelo endereço. Como o
+   ficheiro tem sempre o mesmo nome, uma imagem nova nunca chegaria a ser lida.
+   Juntar a data de modificação ao endereço resolve: trocar o ficheiro passa a
+   mudar o endereço, e a imagem é lida de novo. */
+$fimg = __DIR__ . '/' . IMAGEM;
+$temImagem = is_file($fimg);
+$img = '';
+$larg = 1200;
+$alt  = 630;
+
+if ($temImagem) {
+  $img = base() . '/' . IMAGEM . '?v=' . filemtime($fimg);
+  $dim = @getimagesize($fimg);
+  if ($dim) { $larg = $dim[0]; $alt = $dim[1]; }
+}
+
+$tags = [
   '<meta property="og:type" content="website">',
   '<meta property="og:site_name" content="' . e(EMPRESA) . '">',
   '<meta property="og:locale" content="pt_BR">',
   '<meta property="og:title" content="' . e($titulo) . '">',
   '<meta property="og:description" content="' . e($descricao) . '">',
   '<meta property="og:url" content="' . e($url) . '">',
-  '<meta property="og:image" content="' . e($img) . '">',
-  '<meta property="og:image:secure_url" content="' . e($img) . '">',
-  '<meta property="og:image:type" content="image/jpeg">',
-  '<meta property="og:image:width" content="1200">',
-  '<meta property="og:image:height" content="630">',
-  '<meta property="og:image:alt" content="' . e($titulo) . '">',
+];
+
+/* sem imagem no servidor, é melhor não anunciar nenhuma do que anunciar
+   um endereço partido — o WhatsApp mostra só o texto */
+if ($temImagem) {
+  $tags = array_merge($tags, [
+    '<meta property="og:image" content="' . e($img) . '">',
+    '<meta property="og:image:secure_url" content="' . e($img) . '">',
+    '<meta property="og:image:type" content="image/jpeg">',
+    '<meta property="og:image:width" content="' . $larg . '">',
+    '<meta property="og:image:height" content="' . $alt . '">',
+    '<meta property="og:image:alt" content="' . e($titulo) . '">',
+    '<meta name="twitter:image" content="' . e($img) . '">',
+  ]);
+}
+
+$tags = array_merge($tags, [
   '<meta name="twitter:card" content="summary_large_image">',
   '<meta name="twitter:title" content="' . e($titulo) . '">',
   '<meta name="twitter:description" content="' . e($descricao) . '">',
-  '<meta name="twitter:image" content="' . e($img) . '">',
   '<meta name="description" content="' . e($descricao) . '">',
   '<meta name="robots" content="noindex,nofollow">',
 ]);
+
+$tags = implode("\n", $tags);
 
 /* remove as etiquetas de reserva do HTML para não ficarem duplicadas */
 $html = preg_replace('/<!--OG-RESERVA-INICIO-->.*?<!--OG-RESERVA-FIM-->/s', '', $html, 1);

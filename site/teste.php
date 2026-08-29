@@ -221,12 +221,16 @@ a{color:var(--gilt)}
     <?php endif; ?>
   </div>
 
+  <?php $v = file_exists($fimg) ? '?v=' . filemtime($fimg) : ''; ?>
   <h2>A imagem como o WhatsApp a vai buscar</h2>
   <div class="caixa">
     <p>Se o quadro abaixo aparecer vazio ou partido, o WhatsApp também não a consegue ler.</p>
-    <img src="<?= e($base) ?>/img/preview.jpg" alt="Pré-visualização"
+    <img src="<?= e($base . '/img/preview.jpg' . $v) ?>" alt="Pré-visualização"
          style="width:100%;border-radius:6px;border:1px solid var(--border);display:block;margin-top:10px">
-    <p style="margin-top:10px">Endereço:<br><code><?= e($base) ?>/img/preview.jpg</code></p>
+    <p style="margin-top:10px">Endereço declarado ao WhatsApp:<br>
+      <code><?= e($base . '/img/preview.jpg' . $v) ?></code></p>
+    <p>O número no fim muda sempre que substituir a imagem, para o WhatsApp
+      não continuar a mostrar a versão antiga guardada em cache.</p>
   </div>
 
   <?php if ($ultimos): ?>
