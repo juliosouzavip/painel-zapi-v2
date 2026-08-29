@@ -115,18 +115,28 @@ $cfg = @file_get_contents("$dir/api.php") ?: '';
 function constDo($src, $nome) {
   return preg_match("/const\s+$nome\s*=\s*'([^']*)'/", $src, $m) ? $m[1] : null;
 }
+$metaOk  = constDo($cfg, 'META_TOKEN') && constDo($cfg, 'META_PHONE_ID');
 $zapiOk  = constDo($cfg, 'ZAPI_INSTANCIA') && constDo($cfg, 'ZAPI_TOKEN');
 $emailOk = (bool) constDo($cfg, 'AVISO_EMAIL');
 $numAviso = constDo($cfg, 'AVISO_WHATSAPP');
+$modelo   = constDo($cfg, 'META_MODELO');
+
+if ($metaOk) {
+  $via = 'WhatsApp pelo Meta para ' . $numAviso
+       . ($modelo ? ' · modelo "' . $modelo . '"' : ' · sem modelo, só dentro das 24h');
+} elseif ($zapiOk) {
+  $via = 'WhatsApp pela Z-API para ' . $numAviso;
+} elseif ($emailOk) {
+  $via = 'Apenas por e-mail. Para o WhatsApp, preencha META_TOKEN e META_PHONE_ID no api.php';
+} else {
+  $via = 'DESLIGADO — preencha META_TOKEN/META_PHONE_ID, ZAPI_*, ou AVISO_EMAIL no api.php';
+}
+if (($metaOk || $zapiOk) && $emailOk) $via .= ' + e-mail';
 
 $itens[] = [
   'nome' => 'Aviso de confirmação',
-  'ok'   => $zapiOk || $emailOk,
-  'nota' => $zapiOk
-    ? ('WhatsApp pela Z-API para ' . $numAviso . ($emailOk ? ' + e-mail' : ''))
-    : ($emailOk
-      ? 'Apenas por e-mail. Para receber no WhatsApp, preencha ZAPI_INSTANCIA e ZAPI_TOKEN no api.php'
-      : 'DESLIGADO — preencha ZAPI_INSTANCIA/ZAPI_TOKEN ou AVISO_EMAIL no api.php'),
+  'ok'   => $metaOk || $zapiOk || $emailOk,
+  'nota' => $via,
 ];
 
 $falhas = count(array_filter($itens, fn($i) => !$i['ok']));
@@ -255,6 +265,30 @@ a{color:var(--gilt)}
   <h2>Testar o aviso de confirmação</h2>
   <div class="caixa">
     <p>Envia um aviso de exemplo, para confirmar que chega antes de um cliente real confirmar.</p>
+    <?php if (!$metaOk && !$zapiOk): ?>
+      <details style="margin:12px 0;padding:12px;background:var(--bg);border:1px solid var(--border);border-radius:6px">
+        <summary style="cursor:pointer;font-weight:700;color:var(--ink)">Como ligar o WhatsApp oficial do Meta</summary>
+        <p style="margin-top:10px">1. Em <a href="https://business.facebook.com" target="_blank" rel="noopener">business.facebook.com</a>,
+          abra <b>Ferramentas para programadores</b> → a sua app → <b>WhatsApp → Configuração da API</b>.</p>
+        <p>2. Copie o <b>ID do número de telefone</b> para <code>META_PHONE_ID</code> e gere um
+          <b>token de acesso permanente</b> para <code>META_TOKEN</code>. O token temporário
+          da página expira em 24 horas — não serve.</p>
+        <p>3. Em <b>Gestor do WhatsApp → Modelos de mensagens</b>, crie um modelo:</p>
+        <p style="margin-left:12px">Nome: <code>roteiro_confirmado</code><br>
+          Categoria: <b>Utilidade</b><br>
+          Idioma: Português (Portugal) → <code>pt_PT</code>, ou Brasil → <code>pt_BR</code></p>
+        <p style="margin-left:12px">Corpo, exactamente com as quatro variáveis:</p>
+        <p style="margin-left:12px"><code style="display:block;padding:10px;line-height:1.9;white-space:pre-wrap">Roteiro confirmado.
+Cliente: {{1}}
+Viagem: {{2}}
+Referência: {{3}}
+Ver: {{4}}</code></p>
+        <p>4. A aprovação costuma demorar minutos. Depois preencha <code>META_MODELO</code>
+          com o nome do modelo e <code>META_IDIOMA</code> com o código do idioma.</p>
+        <p style="color:var(--ink-2)">O Meta só permite texto livre nas 24 horas seguintes a uma
+          mensagem do destinatário. Como este aviso é automático, o modelo é obrigatório.</p>
+      </details>
+    <?php endif; ?>
     <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
       <input id="senhaTeste" type="password" placeholder="Senha do painel"
              style="flex:1;min-width:160px;padding:9px 12px;border:1px solid var(--border);

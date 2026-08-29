@@ -12,19 +12,29 @@ const MAX     = 300000;                 // tamanho máximo por roteiro (300 KB)
 const VALIDADE = 400;                   // dias que um roteiro fica guardado
 
 /* ── AVISO QUANDO O CLIENTE CONFIRMA ──────────────────
-   Basta preencher um dos dois. Pode usar os dois ao mesmo tempo.
+   Preencha APENAS a via que usa. As não preenchidas ficam desligadas.
 
-   A) WhatsApp pela Z-API — copie os três valores do painel da Z-API
-      em https://app.z-api.io (Instância → Segurança).
-   B) E-mail — funciona sem configurar nada além do endereço.
+   A) WhatsApp pelo Meta (business.facebook.com) — o oficial do Facebook
+   B) WhatsApp pela Z-API (app.z-api.io) — serviço externo
+   C) E-mail — funciona sem configurar nada além do endereço
    ───────────────────────────────────────────────────── */
 
 const AVISO_WHATSAPP = '351963765679';  // número que recebe o aviso, sem + nem espaços
 
-const ZAPI_INSTANCIA    = '';   // ex: 3ED5449C491BB12A2910D66739CEE648
-const ZAPI_TOKEN        = '';   // ex: 99865543D794C144ECA83BC3
-const ZAPI_CLIENT_TOKEN = '';   // "Client-Token" na aba Segurança da Z-API
+/* A) META — WhatsApp Business Platform
+   Em business.facebook.com → Ferramentas para programadores → a sua app
+   → WhatsApp → Configuração da API. Veja as instruções no teste.php. */
+const META_TOKEN    = '';   // token de acesso permanente
+const META_PHONE_ID = '';   // "ID do número de telefone" (só dígitos)
+const META_MODELO   = 'roteiro_confirmado';  // nome do modelo aprovado
+const META_IDIOMA   = 'pt_PT';               // idioma do modelo: pt_PT ou pt_BR
 
+/* B) Z-API — em app.z-api.io, Instância → Segurança */
+const ZAPI_INSTANCIA    = '';
+const ZAPI_TOKEN        = '';
+const ZAPI_CLIENT_TOKEN = '';
+
+/* C) E-mail */
 const AVISO_EMAIL = 'info@vipturismoparis.com';  // vazio desliga o e-mail
 
 header('Content-Type: application/json; charset=utf-8');
@@ -144,6 +154,94 @@ function baseUrl() {
   return ($https ? 'https://' : 'http://') . $host . $pasta;
 }
 
+/* Faz um pedido POST em JSON e devolve o resultado */
+function postJson($url, $corpo, $cabecalhos, $segundos = 8) {
+  if (function_exists('curl_init')) {
+    $ch = curl_init($url);
+    curl_setopt_array($ch, [
+      CURLOPT_POST           => true,
+      CURLOPT_POSTFIELDS     => $corpo,
+      CURLOPT_HTTPHEADER     => $cabecalhos,
+      CURLOPT_RETURNTRANSFER => true,
+      CURLOPT_TIMEOUT        => $segundos,
+      CURLOPT_CONNECTTIMEOUT => 5,
+    ]);
+    $resposta = curl_exec($ch);
+    $codigo   = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $erroCurl = curl_error($ch);
+    curl_close($ch);
+
+    if ($resposta === false) return ['ok' => false, 'erro' => $erroCurl ?: 'falha na ligação'];
+    if ($codigo >= 200 && $codigo < 300) return ['ok' => true];
+    return ['ok' => false, 'erro' => "HTTP $codigo: " . substr((string)$resposta, 0, 300)];
+  }
+
+  $ctx = stream_context_create(['http' => [
+    'method'        => 'POST',
+    'header'        => implode("\r\n", $cabecalhos),
+    'content'       => $corpo,
+    'timeout'       => $segundos,
+    'ignore_errors' => true,
+  ]]);
+  $resposta = @file_get_contents($url, false, $ctx);
+  if ($resposta === false) return ['ok' => false, 'erro' => 'sem cURL e o pedido falhou'];
+  return ['ok' => true];
+}
+
+/* Envia pelo WhatsApp oficial do Meta.
+
+   O Meta só deixa enviar texto livre nas 24h seguintes a uma mensagem do
+   destinatário. Fora disso é preciso um modelo aprovado — que é o caso de
+   um aviso automático como este. Por isso usamos o modelo por omissão. */
+function avisaMeta($roteiro, $id) {
+  if (META_TOKEN === '' || META_PHONE_ID === '' || AVISO_WHATSAPP === '') {
+    return ['ok' => false, 'erro' => 'Meta não configurado'];
+  }
+
+  $nome = trim($roteiro['cliente']['nome'] ?? 'Cliente');
+  if ($nome !== '' && mb_strtoupper($nome, 'UTF-8') === $nome) {
+    $nome = mb_convert_case($nome, MB_CASE_TITLE, 'UTF-8');
+  }
+  $viagem = trim($roteiro['titulo'] ?? 'Roteiro');
+
+  /* O Meta recusa variáveis com quebras de linha ou espaços seguidos */
+  $limpa = fn($t) => trim(preg_replace('/\s+/u', ' ', (string)$t));
+
+  $url = 'https://graph.facebook.com/v21.0/' . META_PHONE_ID . '/messages';
+  $cabecalhos = ['Content-Type: application/json', 'Authorization: Bearer ' . META_TOKEN];
+
+  if (META_MODELO !== '') {
+    $msg = [
+      'messaging_product' => 'whatsapp',
+      'to'                => AVISO_WHATSAPP,
+      'type'              => 'template',
+      'template'          => [
+        'name'     => META_MODELO,
+        'language' => ['code' => META_IDIOMA],
+        'components' => [[
+          'type' => 'body',
+          'parameters' => [
+            ['type' => 'text', 'text' => $limpa($nome)],
+            ['type' => 'text', 'text' => $limpa($viagem)],
+            ['type' => 'text', 'text' => $limpa($id)],
+            ['type' => 'text', 'text' => $limpa(baseUrl() . '/r.php?r=' . $id)],
+          ],
+        ]],
+      ],
+    ];
+  } else {
+    /* sem modelo, só funciona dentro da janela de 24 horas */
+    $msg = [
+      'messaging_product' => 'whatsapp',
+      'to'                => AVISO_WHATSAPP,
+      'type'              => 'text',
+      'text'              => ['body' => textoAviso($roteiro, $id)],
+    ];
+  }
+
+  return postJson($url, json_encode($msg, JSON_UNESCAPED_UNICODE), $cabecalhos);
+}
+
 /* Envia pelo WhatsApp através da Z-API */
 function avisaWhatsApp($texto) {
   if (ZAPI_INSTANCIA === '' || ZAPI_TOKEN === '' || AVISO_WHATSAPP === '') {
@@ -157,37 +255,7 @@ function avisaWhatsApp($texto) {
   $cabecalhos = ['Content-Type: application/json'];
   if (ZAPI_CLIENT_TOKEN !== '') $cabecalhos[] = 'Client-Token: ' . ZAPI_CLIENT_TOKEN;
 
-  if (function_exists('curl_init')) {
-    $ch = curl_init($url);
-    curl_setopt_array($ch, [
-      CURLOPT_POST           => true,
-      CURLOPT_POSTFIELDS     => $corpo,
-      CURLOPT_HTTPHEADER     => $cabecalhos,
-      CURLOPT_RETURNTRANSFER => true,
-      CURLOPT_TIMEOUT        => 8,
-      CURLOPT_CONNECTTIMEOUT => 5,
-    ]);
-    $resposta = curl_exec($ch);
-    $codigo   = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    $erroCurl = curl_error($ch);
-    curl_close($ch);
-
-    if ($resposta === false) return ['ok' => false, 'erro' => $erroCurl ?: 'falha na ligação'];
-    if ($codigo >= 200 && $codigo < 300) return ['ok' => true];
-    return ['ok' => false, 'erro' => "HTTP $codigo: " . substr((string)$resposta, 0, 200)];
-  }
-
-  /* sem cURL, tenta pelo fluxo de ficheiros */
-  $ctx = stream_context_create(['http' => [
-    'method'        => 'POST',
-    'header'        => implode("\r\n", $cabecalhos),
-    'content'       => $corpo,
-    'timeout'       => 8,
-    'ignore_errors' => true,
-  ]]);
-  $resposta = @file_get_contents($url, false, $ctx);
-  if ($resposta === false) return ['ok' => false, 'erro' => 'sem cURL e o pedido falhou'];
-  return ['ok' => true];
+  return postJson($url, $corpo, $cabecalhos);
 }
 
 /* Envia por e-mail */
@@ -211,8 +279,13 @@ function avisaEquipa($roteiro, $id) {
   $nome    = trim($roteiro['cliente']['nome'] ?? 'Cliente');
   $assunto = 'Roteiro confirmado — ' . $nome . ' (' . $id . ')';
 
+  /* usa a via que estiver configurada; se as duas estiverem, o Meta manda */
+  $whatsapp = (META_TOKEN !== '' && META_PHONE_ID !== '')
+    ? avisaMeta($roteiro, $id)
+    : avisaWhatsApp($texto);
+
   return [
-    'whatsapp' => avisaWhatsApp($texto),
+    'whatsapp' => $whatsapp,
     'email'    => avisaEmail($texto, $assunto),
   ];
 }
