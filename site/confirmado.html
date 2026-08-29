@@ -157,7 +157,7 @@ footer strong{color:var(--gilt);font-size:12px}
   <div id="main"><div style="display:flex;align-items:center;justify-content:center;min-height:60vh"><div style="width:28px;height:28px;border:2px solid var(--border);border-top-color:var(--gilt);border-radius:50%;animation:pop .7s linear infinite"></div></div></div>
 </div>
 <script>
-const WP='33XXXXXXXXX'; // substitua pelo número WhatsApp da empresa
+const WP='351963765679';  // WhatsApp da empresa, sem + nem espaços
 const CO='VIP Turismo Paris';
 
 const T={
@@ -174,9 +174,9 @@ const T={
 const UPSELLS=[
   {
     c:'#006064',t:'Cruzeiro',img:'img/cruzeiro-sena.jpg',n:'Cruzeiro no Rio Sena',
-    d:'Passeio ao entardecer pelos monumentos de Paris',
-    detalhes:['Duração: 1h30','Saídas às 17h30 e 20h00','Champagne e petiscos a bordo incluídos','Lugar reservado à boreste (melhor vista)','Narração dos pontos turísticos em português'],
-    p:'A partir de €45/pp'
+    d:'Passeio pelos monumentos de Paris',
+    detalhes:['Duração: 1h00','Saídas a cada hora','Champagne opcional','Lugar no interior ou exterior do barco','Narração dos pontos turísticos'],
+    p:'A partir de €20/pp'
   },
   {
     c:'#e65100',t:'Ingresso',img:'img/torre-eiffel.jpg',n:'Torre Eiffel — Acesso VIP',
@@ -187,7 +187,7 @@ const UPSELLS=[
   {
     c:'#4a148c',t:'Passeio',img:'img/versalhes.jpg',n:'Versalhes — Dia Completo',
     d:'Palácio e jardins com transporte privativo e guia incluso',
-    detalhes:['Transporte privativo ida e volta do hotel','Acesso prioritário ao Palácio (sem fila)','Guia em português por 3h','Jardins de Le Nôtre com as grandes fontes','Inclui almoço em restaurante típico local','Duração: dia inteiro (~8h)'],
+    detalhes:['Transporte privativo ida e volta do hotel','Acesso prioritário ao Palácio (sem fila)','Guia em português por 3h','Jardins de Le Nôtre com as grandes fontes','Duração: dia inteiro (~8h)'],
     p:'A partir de €120/pp'
   },
   {
@@ -206,7 +206,7 @@ const UPSELLS=[
     c:'#b71c1c',t:'Restaurante',img:'img/jantar-romantico.jpg',n:'Jantar Romântico — Vista Torre Eiffel',
     d:'Jantar gourmet em restaurante com vista privilegiada para a Torre iluminada',
     detalhes:['Mesa reservada à janela com vista direta para a Torre Eiffel','Menu 4 tempos com harmonização de vinhos','Champagne de boas-vindas incluso','Serviço personalizado e atendimento em português','Reserva garantida — sem risco de indisponibilidade'],
-    p:'A partir de €180/pp'
+    p:'A partir de €110/pp'
   },
   {
     c:'#c62828',t:'Espetáculo',img:'img/moulin-rouge.jpg',n:'Moulin Rouge — Espetáculo',
@@ -318,12 +318,14 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
 async function init(){
   const codigo=new URLSearchParams(location.search).get('r');
   let d={};
+  let confirmadoEm=null;
 
   if(codigo){
     try{
       const r=await fetch(`api.php?acao=ler&id=${encodeURIComponent(codigo)}`);
       const j=await r.json();
       if(j.roteiro)d=j.roteiro;
+      if(j.confirmado)confirmadoEm=j.confirmado;
     }catch(e){/* mostra a página mesmo sem os detalhes */}
   }else{
     const hash=location.hash.slice(1);
@@ -334,7 +336,9 @@ async function init(){
   const nomeCompleto=d.cliente?.nome||'';
   const titulo=d.titulo||'seu roteiro';
   const ref=codigo||(d.id||'').slice(-6).toUpperCase()||'—';
-  const now=new Date().toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+  /* hora real registada no servidor; sem ela (link antigo em #hash), a hora local */
+  const quando=confirmadoEm?new Date(confirmadoEm):new Date();
+  const now=quando.toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
 
   // itinerary summary
   const groups=byDate(d.svcs||[]);
@@ -371,9 +375,9 @@ async function init(){
       <div class="sec-lbl" style="margin-top:28px">O que acontece agora</div>
       <div class="steps">
         <div class="step"><span class="step-n">1</span><span class="step-txt">Nossa equipe revisará suas reservas e enviará todos os vouchers por e-mail.</span></div>
-        <div class="step"><span class="step-n">2</span><span class="step-txt">Sua consultora entrará em contato via WhatsApp para confirmar os últimos detalhes.</span></div>
-        <div class="step"><span class="step-n">3</span><span class="step-txt">Você receberá os contatos de todos os fornecedores antes da viagem.</span></div>
-        <div class="step"><span class="step-n">4</span><span class="step-txt">Aproveite cada momento — cuidamos de tudo para você.</span></div>
+        <div class="step"><span class="step-n">2</span><span class="step-txt">Sua consultora entrará em contato via WhatsApp para confirmar os últimos detalhes, caso nescessário.</span></div>
+        <div class="step"><span class="step-n">3</span><span class="step-txt">Você receberá um conexão via WhatsApp antes de cada serviço.</span></div>
+        <div class="step"><span class="step-n">4</span><span class="step-txt">Aproveite cada momento — cuidamos de tudo para você. Porque Você Merece o Melhor</span></div>
       </div>
     </div>
 

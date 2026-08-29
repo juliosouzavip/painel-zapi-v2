@@ -110,6 +110,25 @@ $itens[] = [
     : 'Sem HTTPS: o WhatsApp não mostra pré-visualização. Active o AutoSSL no cPanel',
 ];
 
+/* configuração do aviso — lida do api.php sem o executar */
+$cfg = @file_get_contents("$dir/api.php") ?: '';
+function constDo($src, $nome) {
+  return preg_match("/const\s+$nome\s*=\s*'([^']*)'/", $src, $m) ? $m[1] : null;
+}
+$zapiOk  = constDo($cfg, 'ZAPI_INSTANCIA') && constDo($cfg, 'ZAPI_TOKEN');
+$emailOk = (bool) constDo($cfg, 'AVISO_EMAIL');
+$numAviso = constDo($cfg, 'AVISO_WHATSAPP');
+
+$itens[] = [
+  'nome' => 'Aviso de confirmação',
+  'ok'   => $zapiOk || $emailOk,
+  'nota' => $zapiOk
+    ? ('WhatsApp pela Z-API para ' . $numAviso . ($emailOk ? ' + e-mail' : ''))
+    : ($emailOk
+      ? 'Apenas por e-mail. Para receber no WhatsApp, preencha ZAPI_INSTANCIA e ZAPI_TOKEN no api.php'
+      : 'DESLIGADO — preencha ZAPI_INSTANCIA/ZAPI_TOKEN ou AVISO_EMAIL no api.php'),
+];
+
 $falhas = count(array_filter($itens, fn($i) => !$i['ok']));
 
 /* últimos roteiros, para testar o link */
@@ -232,6 +251,42 @@ a{color:var(--gilt)}
     <p>O número no fim muda sempre que substituir a imagem, para o WhatsApp
       não continuar a mostrar a versão antiga guardada em cache.</p>
   </div>
+
+  <h2>Testar o aviso de confirmação</h2>
+  <div class="caixa">
+    <p>Envia um aviso de exemplo, para confirmar que chega antes de um cliente real confirmar.</p>
+    <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+      <input id="senhaTeste" type="password" placeholder="Senha do painel"
+             style="flex:1;min-width:160px;padding:9px 12px;border:1px solid var(--border);
+                    border-radius:6px;background:var(--bg);color:var(--ink);font:inherit;font-size:13px">
+      <button onclick="testarAviso()"
+              style="padding:9px 18px;border:none;border-radius:6px;background:var(--gilt);
+                     color:#fff;font:inherit;font-size:13px;font-weight:700;cursor:pointer">Enviar teste</button>
+    </div>
+    <p id="resTeste" style="margin-top:10px;min-height:20px"></p>
+  </div>
+
+  <script>
+  async function testarAviso(){
+    const el=document.getElementById('resTeste');
+    const senha=document.getElementById('senhaTeste').value;
+    if(!senha){el.textContent='Escreva a senha do painel.';return;}
+    el.textContent='A enviar...';
+    try{
+      const r=await fetch('api.php?acao=testar-aviso',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({senha}),
+      });
+      const j=await r.json();
+      if(j.erro){el.textContent=j.erro;return;}
+      const w=j.resultado.whatsapp, m=j.resultado.email;
+      el.innerHTML=
+        'WhatsApp: '+(w.ok?'<b>enviado</b>':'não enviado — '+w.erro)+'<br>'+
+        'E-mail: '+(m.ok?'<b>enviado</b>':'não enviado — '+m.erro);
+    }catch(e){el.textContent='Falha ao contactar o api.php: '+e.message;}
+  }
+  </script>
 
   <?php if ($ultimos): ?>
     <h2>Últimos roteiros — clique para testar</h2>

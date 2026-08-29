@@ -11,6 +11,22 @@ const DIR     = __DIR__ . '/dados';     // pasta onde os roteiros ficam
 const MAX     = 300000;                 // tamanho máximo por roteiro (300 KB)
 const VALIDADE = 400;                   // dias que um roteiro fica guardado
 
+/* ── AVISO QUANDO O CLIENTE CONFIRMA ──────────────────
+   Basta preencher um dos dois. Pode usar os dois ao mesmo tempo.
+
+   A) WhatsApp pela Z-API — copie os três valores do painel da Z-API
+      em https://app.z-api.io (Instância → Segurança).
+   B) E-mail — funciona sem configurar nada além do endereço.
+   ───────────────────────────────────────────────────── */
+
+const AVISO_WHATSAPP = '351963765679';  // número que recebe o aviso, sem + nem espaços
+
+const ZAPI_INSTANCIA    = '';   // ex: 3ED5449C491BB12A2910D66739CEE648
+const ZAPI_TOKEN        = '';   // ex: 99865543D794C144ECA83BC3
+const ZAPI_CLIENT_TOKEN = '';   // "Client-Token" na aba Segurança da Z-API
+
+const AVISO_EMAIL = 'info@vipturismoparis.com';  // vazio desliga o e-mail
+
 header('Content-Type: application/json; charset=utf-8');
 header('X-Content-Type-Options: nosniff');
 
@@ -77,6 +93,130 @@ function limpaAntigos() {
   }
 }
 
+/* ─────────────────────────────────────────────
+   Aviso de confirmação
+   ───────────────────────────────────────────── */
+
+/* Texto do aviso, com os dados do roteiro */
+function textoAviso($roteiro, $id) {
+  $nome   = trim($roteiro['cliente']['nome'] ?? 'Cliente');
+  $tel    = trim($roteiro['cliente']['telefone'] ?? '');
+  $viagem = trim($roteiro['titulo'] ?? '');
+  $svcs   = is_array($roteiro['svcs'] ?? null) ? $roteiro['svcs'] : [];
+
+  if ($nome !== '' && mb_strtoupper($nome, 'UTF-8') === $nome) {
+    $nome = mb_convert_case($nome, MB_CASE_TITLE, 'UTF-8');
+  }
+
+  $linhas = [];
+  $linhas[] = 'ROTEIRO CONFIRMADO';
+  $linhas[] = '';
+  $linhas[] = 'Cliente: ' . $nome;
+  if ($tel !== '')    $linhas[] = 'Telefone: ' . $tel;
+  if ($viagem !== '') $linhas[] = 'Viagem: ' . $viagem;
+  $linhas[] = 'Referência: ' . $id;
+  $linhas[] = 'Confirmado em: ' . date('d/m/Y H:i');
+  $linhas[] = '';
+
+  if ($svcs) {
+    $linhas[] = 'Serviços aceites (' . count($svcs) . '):';
+    foreach ($svcs as $sv) {
+      $data = $sv['data'] ?? '';
+      if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $data) === 1) $data = date('d/m', strtotime($data));
+      $partes = array_filter([$data, $sv['hora'] ?? '', $sv['nome'] ?? '', $sv['valor'] ?? '']);
+      $linhas[] = '• ' . implode(' · ', $partes);
+    }
+    $linhas[] = '';
+  }
+
+  $linhas[] = 'Ver o roteiro:';
+  $linhas[] = baseUrl() . '/r.php?r=' . $id;
+
+  return implode("\n", $linhas);
+}
+
+/* Endereço do site, detectado a partir do pedido */
+function baseUrl() {
+  $https = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+        || (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https');
+  $host  = $_SERVER['HTTP_HOST'] ?? 'vipturismoparis.com';
+  $pasta = rtrim(str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'] ?? '/')), '/');
+  return ($https ? 'https://' : 'http://') . $host . $pasta;
+}
+
+/* Envia pelo WhatsApp através da Z-API */
+function avisaWhatsApp($texto) {
+  if (ZAPI_INSTANCIA === '' || ZAPI_TOKEN === '' || AVISO_WHATSAPP === '') {
+    return ['ok' => false, 'erro' => 'Z-API não configurada'];
+  }
+
+  $url = 'https://api.z-api.io/instances/' . ZAPI_INSTANCIA
+       . '/token/' . ZAPI_TOKEN . '/send-text';
+  $corpo = json_encode(['phone' => AVISO_WHATSAPP, 'message' => $texto], JSON_UNESCAPED_UNICODE);
+
+  $cabecalhos = ['Content-Type: application/json'];
+  if (ZAPI_CLIENT_TOKEN !== '') $cabecalhos[] = 'Client-Token: ' . ZAPI_CLIENT_TOKEN;
+
+  if (function_exists('curl_init')) {
+    $ch = curl_init($url);
+    curl_setopt_array($ch, [
+      CURLOPT_POST           => true,
+      CURLOPT_POSTFIELDS     => $corpo,
+      CURLOPT_HTTPHEADER     => $cabecalhos,
+      CURLOPT_RETURNTRANSFER => true,
+      CURLOPT_TIMEOUT        => 8,
+      CURLOPT_CONNECTTIMEOUT => 5,
+    ]);
+    $resposta = curl_exec($ch);
+    $codigo   = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $erroCurl = curl_error($ch);
+    curl_close($ch);
+
+    if ($resposta === false) return ['ok' => false, 'erro' => $erroCurl ?: 'falha na ligação'];
+    if ($codigo >= 200 && $codigo < 300) return ['ok' => true];
+    return ['ok' => false, 'erro' => "HTTP $codigo: " . substr((string)$resposta, 0, 200)];
+  }
+
+  /* sem cURL, tenta pelo fluxo de ficheiros */
+  $ctx = stream_context_create(['http' => [
+    'method'        => 'POST',
+    'header'        => implode("\r\n", $cabecalhos),
+    'content'       => $corpo,
+    'timeout'       => 8,
+    'ignore_errors' => true,
+  ]]);
+  $resposta = @file_get_contents($url, false, $ctx);
+  if ($resposta === false) return ['ok' => false, 'erro' => 'sem cURL e o pedido falhou'];
+  return ['ok' => true];
+}
+
+/* Envia por e-mail */
+function avisaEmail($texto, $assunto) {
+  if (AVISO_EMAIL === '' || !function_exists('mail')) {
+    return ['ok' => false, 'erro' => 'e-mail não configurado'];
+  }
+  $de = 'noreply@' . preg_replace('/^www\./', '', $_SERVER['HTTP_HOST'] ?? 'vipturismoparis.com');
+  $cabecalhos = implode("\r\n", [
+    'From: VIP Turismo Paris <' . $de . '>',
+    'Content-Type: text/plain; charset=UTF-8',
+    'Content-Transfer-Encoding: 8bit',
+  ]);
+  $enviado = @mail(AVISO_EMAIL, $assunto, $texto, $cabecalhos);
+  return $enviado ? ['ok' => true] : ['ok' => false, 'erro' => 'o servidor recusou o envio'];
+}
+
+/* Dispara os avisos configurados e devolve o que aconteceu */
+function avisaEquipa($roteiro, $id) {
+  $texto   = textoAviso($roteiro, $id);
+  $nome    = trim($roteiro['cliente']['nome'] ?? 'Cliente');
+  $assunto = 'Roteiro confirmado — ' . $nome . ' (' . $id . ')';
+
+  return [
+    'whatsapp' => avisaWhatsApp($texto),
+    'email'    => avisaEmail($texto, $assunto),
+  ];
+}
+
 preparaPasta();
 
 $acao = $_GET['acao'] ?? '';
@@ -131,6 +271,14 @@ switch ($acao) {
       $reg['status']     = 'confirmado';
       $reg['confirmado'] = date('c');
       grava($id, $reg);
+
+      /* avisa a equipa — uma única vez, e sem impedir a confirmação se falhar */
+      try {
+        $reg['aviso'] = avisaEquipa($reg['roteiro'], $id);
+      } catch (Throwable $e) {
+        $reg['aviso'] = ['erro' => $e->getMessage()];
+      }
+      grava($id, $reg);
     }
     responde(['status' => 'confirmado', 'confirmado' => $reg['confirmado']]);
 
@@ -152,6 +300,17 @@ switch ($acao) {
     }
     usort($lista, fn($a, $b) => strcmp($b['criadoEm'] ?? '', $a['criadoEm'] ?? ''));
     responde(['roteiros' => array_slice($lista, 0, 200)]);
+
+  /* ── Envia um aviso de teste, para conferir a configuração ── */
+  case 'testar-aviso':
+    exigeSenha($body['senha'] ?? '');
+    $exemplo = [
+      'cliente' => ['nome' => 'Cliente de Teste', 'telefone' => '+351 963 765 679'],
+      'titulo'  => 'Teste de aviso — pode ignorar',
+      'svcs'    => [['tipo' => 'transfer', 'nome' => 'Transfer de exemplo',
+                     'data' => date('Y-m-d'), 'hora' => '10:00', 'valor' => '€0,00']],
+    ];
+    responde(['resultado' => avisaEquipa($exemplo, 'TESTE1')]);
 
   /* ── Apaga um roteiro ── */
   case 'apagar':
