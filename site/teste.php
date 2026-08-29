@@ -40,14 +40,37 @@ foreach ([
   ];
 }
 
-$img = file_exists("$dir/img/preview.jpg");
-$itens[] = [
-  'nome' => 'img/preview.jpg',
-  'ok'   => $img,
-  'nota' => $img
-    ? 'Imagem da pré-visualização encontrada'
-    : 'FALTA — crie a pasta img/ e coloque lá o preview.jpg',
-];
+/* imagem da pré-visualização: existe, é um JPEG válido e tem o tamanho certo? */
+$fimg = "$dir/img/preview.jpg";
+if (!file_exists($fimg)) {
+  $itens[] = [
+    'nome' => 'img/preview.jpg',
+    'ok'   => false,
+    'nota' => 'FALTA — crie a pasta img/ e coloque lá o preview.jpg',
+  ];
+} else {
+  $bytes = filesize($fimg);
+  $info  = @getimagesize($fimg);
+  if (!$info || ($info[2] ?? 0) !== IMAGETYPE_JPEG) {
+    $itens[] = [
+      'nome' => 'img/preview.jpg',
+      'ok'   => false,
+      'nota' => 'FICHEIRO DANIFICADO — reenvie por FTP em modo binário, '
+              . 'ou pelo Gestor de Ficheiros do cPanel',
+    ];
+  } else {
+    [$lg, $al] = $info;
+    $bom = $lg >= 600 && $al >= 315 && $bytes < 5000000;
+    $itens[] = [
+      'nome' => 'img/preview.jpg',
+      'ok'   => $bom,
+      'nota' => $bom
+        ? "JPEG válido · {$lg}×{$al} px · " . round($bytes / 1024) . ' KB'
+        : "JPEG {$lg}×{$al} px — o WhatsApp precisa de pelo menos 600×315 px "
+        . 'e menos de 5 MB',
+    ];
+  }
+}
 
 /* pasta de dados */
 $dados = "$dir/dados";
@@ -196,6 +219,14 @@ a{color:var(--gilt)}
       <code><?= e($pasta) ?></code>. No <code>gerador.html</code>, o
       <code>BASE_URL</code> tem de ser <code><?= e($base) ?></code>.</p>
     <?php endif; ?>
+  </div>
+
+  <h2>A imagem como o WhatsApp a vai buscar</h2>
+  <div class="caixa">
+    <p>Se o quadro abaixo aparecer vazio ou partido, o WhatsApp também não a consegue ler.</p>
+    <img src="<?= e($base) ?>/img/preview.jpg" alt="Pré-visualização"
+         style="width:100%;border-radius:6px;border:1px solid var(--border);display:block;margin-top:10px">
+    <p style="margin-top:10px">Endereço:<br><code><?= e($base) ?>/img/preview.jpg</code></p>
   </div>
 
   <?php if ($ultimos): ?>
